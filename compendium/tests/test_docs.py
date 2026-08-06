@@ -67,9 +67,7 @@ class TestDocs(FrappeTestCase):
 			with open(os.path.join(second_app, "docs", "en", "shared.md"), "w", encoding="utf-8") as f:
 				f.write("---\ntitle: Second\n---\nSecond body")
 
-			with patch(
-				"compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]
-			):
+			with patch("compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]):
 
 				def get_app_path(app):
 					return os.path.join(tmp, app)
@@ -183,7 +181,12 @@ class TestDocs(FrappeTestCase):
 		self.assertTrue(os.path.isfile(os.path.join(docs_root, "en", "compendium", "docs", "authoring.md")))
 
 		pages = discover_pages("en")
-		for path in ("compendium", "compendium/docs", "compendium/docs/authoring", "compendium/docs/getting-started"):
+		for path in (
+			"compendium",
+			"compendium/docs",
+			"compendium/docs/authoring",
+			"compendium/docs/getting-started",
+		):
 			self.assertIn(path, pages)
 			self.assertEqual(pages[path].roles, ["System Manager"])
 
@@ -286,9 +289,7 @@ class TestDocs(FrappeTestCase):
 			with open(os.path.join(second_app, "docs", "en", "shared.md"), "w", encoding="utf-8") as f:
 				f.write("---\ntitle: English Second\n---\nEnglish second")
 
-			with patch(
-				"compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]
-			):
+			with patch("compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]):
 
 				def get_app_path(app):
 					return os.path.join(tmp, app)
@@ -313,9 +314,7 @@ class TestDocs(FrappeTestCase):
 			with open(os.path.join(second_app, "docs", "de", "shared.md"), "w", encoding="utf-8") as f:
 				f.write("---\ntitle: Deutsch Neu\n---\nDeutsch neu")
 
-			with patch(
-				"compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]
-			):
+			with patch("compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]):
 
 				def get_app_path(app):
 					return os.path.join(tmp, app)

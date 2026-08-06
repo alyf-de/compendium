@@ -244,9 +244,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			$(
 				`<a class="${classes.join(" ")}" data-path="${frappe.utils.escape_html(
 					node.path
-				)}" data-has-page="${node.has_page ? "1" : "0"}" href="#">${frappe.utils.escape_html(
-					node.title
-				)}</a>`
+				)}" data-has-page="${
+					node.has_page ? "1" : "0"
+				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
 			).appendTo($item);
 
 			if (node.children?.length) {
