@@ -16,6 +16,7 @@ See the [built-in docs](compendium/docs) for authoring conventions and a getting
 - Later apps override the same logical path
 - Relative images served safely from each app's `docs/` tree
 - Mermaid diagrams in fenced code blocks
+- Syntax highlighting for fenced code blocks
 - Desk entry points: `/app/docs`, Help menu, and the `/apps` picker
 
 ### Installation

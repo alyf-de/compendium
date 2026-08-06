@@ -385,6 +385,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$reading.html(doc.content || "");
 		this.render_roles(doc.roles);
 		this.render_mermaid();
+		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
 	}
@@ -420,6 +421,23 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				compendium.mermaid.run({ nodes, suppressErrors: true })
 			);
 		});
+	}
+
+	highlight_code() {
+		const blocks = this.$reading.find("pre code").not(".language-mermaid, .mermaid").get();
+		if (!blocks.length) {
+			return;
+		}
+
+		frappe
+			.require(["syntax_highlighting.bundle.js", "/assets/frappe/css/hljs-night-owl.css"])
+			.then(() => {
+				for (const block of blocks) {
+					if (block.isConnected) {
+						compendium.hljs.highlightElement(block);
+					}
+				}
+			});
 	}
 
 	ensure_mermaid() {

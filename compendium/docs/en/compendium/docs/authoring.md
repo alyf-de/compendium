@@ -77,6 +77,16 @@ flowchart LR
 
 See the [Mermaid syntax docs](https://mermaid.ai/open-source/intro/) for diagram types.
 
+## Code blocks
+
+Fenced code blocks get syntax highlighting in the reading pane. Prefer a language
+tag when it matters:
+
+```python
+def hello():
+	print("Hello")
+```
+
 ## Example page
 
 ```md

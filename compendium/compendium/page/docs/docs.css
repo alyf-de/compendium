@@ -269,6 +269,26 @@
 	height: auto;
 }
 
+.docs-reading-pane pre {
+	margin: var(--margin-md) 0;
+	overflow-x: auto;
+	border-radius: var(--border-radius);
+}
+
+.docs-reading-pane pre > code {
+	display: block;
+	padding: var(--padding-sm) var(--padding-md);
+	font-size: var(--text-sm);
+	line-height: 1.5;
+}
+
+.docs-reading-pane :not(pre) > code {
+	padding: 0.1em 0.35em;
+	border-radius: var(--border-radius-sm);
+	background: var(--subtle-fg);
+	font-size: 0.9em;
+}
+
 .docs-page-roles {
 	margin-top: var(--margin-xl);
 	padding-top: var(--padding-md);

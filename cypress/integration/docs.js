@@ -41,6 +41,14 @@ context("Documentation Browser", () => {
 		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
 	});
 
+	it("highlights fenced code blocks", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.get(".docs-reading-pane pre code.hljs", { timeout: 15000 }).should(
+			"have.length.at.least",
+			1
+		);
+	});
+
 	it("shows which of the user's roles grant access", () => {
 		cy.visit("/app/docs/en/compendium/docs/authoring");
 		cy.get(".docs-page-roles").should("contain", "System Manager");
