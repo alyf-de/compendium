@@ -199,6 +199,17 @@
 	opacity: 0.5;
 }
 
+.docs-reading-pane .mermaid {
+	margin: var(--margin-md) 0;
+	overflow-x: auto;
+	text-align: center;
+}
+
+.docs-reading-pane .mermaid svg {
+	max-width: 100%;
+	height: auto;
+}
+
 /* Mobile / tablet: keep locale picker under the tree in the overlay drawer */
 @media (max-width: 991px) {
 	.docs-sidebar .docs-tree {

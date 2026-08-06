@@ -65,6 +65,18 @@ that owns the English page or a later installed app.
 Reference images with relative paths in Markdown. Compendium serves them through
 `compendium.docs.get_asset`, so assets stay inside the owning app's `docs/` tree.
 
+## Mermaid diagrams
+
+Fenced `mermaid` blocks render as diagrams in the reading pane:
+
+```mermaid
+flowchart LR
+  apps[Installed apps] --> tree[docs trees]
+  tree --> desk["/app/docs"]
+```
+
+See the [Mermaid syntax docs](https://mermaid.ai/open-source/intro/) for diagram types.
+
 ## Example page
 
 ```md

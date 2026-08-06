@@ -1,0 +1,7 @@
+{
+  "name": "compendium",
+  "private": true,
+  "dependencies": {
+    "mermaid": "^11.6.0"
+  }
+}

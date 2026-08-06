@@ -126,6 +126,11 @@ class TestDocs(FrappeTestCase):
 			self.assertIn("get_asset", html)
 			self.assertNotIn("<script>", html)
 
+	def test_mermaid_fence_keeps_language_class(self):
+		html = render_page_content("```mermaid\nflowchart LR\n  A-->B\n```")
+		self.assertIn("language-mermaid", html)
+		self.assertIn("flowchart LR", html)
+
 	def test_protected_assets_require_page_access(self):
 		with self.docs_environment(
 			{

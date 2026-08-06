@@ -323,8 +323,45 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
+		this.render_mermaid();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
+	}
+
+	render_mermaid() {
+		const $blocks = this.$reading.find("pre code.language-mermaid, pre code.mermaid");
+		if (!$blocks.length) {
+			return;
+		}
+
+		const nodes = [];
+		$blocks.each((_, code) => {
+			const $diagram = $('<div class="mermaid">').text(code.textContent || "");
+			$(code).closest("pre").replaceWith($diagram);
+			nodes.push($diagram.get(0));
+		});
+
+		frappe.require("mermaid.bundle.js").then(() => {
+			this.ensure_mermaid().then(() =>
+				compendium.mermaid.run({ nodes, suppressErrors: true })
+			);
+		});
+	}
+
+	ensure_mermaid() {
+		if (compendium.mermaid_ready) {
+			return Promise.resolve();
+		}
+
+		const theme =
+			document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default";
+		compendium.mermaid.initialize({
+			startOnLoad: false,
+			securityLevel: "strict",
+			theme,
+		});
+		compendium.mermaid_ready = true;
+		return Promise.resolve();
 	}
 
 	show_empty_state() {

@@ -19,6 +19,11 @@ context("Documentation Browser", () => {
 		cy.get(".navbar-breadcrumbs li").last().should("contain", "Authoring Guide");
 	});
 
+	it("renders mermaid diagrams from fenced blocks", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/app/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");
