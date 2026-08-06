@@ -188,6 +188,19 @@
 	line-height: 1.6;
 }
 
+/* Desk sets a { color: text }, so markdown links need an explicit highlight. */
+.docs-reading-pane a {
+	color: var(--primary);
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.docs-reading-pane a:hover,
+.docs-reading-pane a:focus {
+	color: var(--primary);
+	opacity: 0.85;
+}
+
 .docs-reading-pane > :first-child {
 	margin-top: 0;
 }
