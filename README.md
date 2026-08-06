@@ -6,6 +6,18 @@
 
 In-app documentation for Frappe Desk. Compendium aggregates Markdown files from every installed app's `docs/{language}/**/*.md` tree and serves them at `/app/docs`.
 
+See the [built-in docs](compendium/docs) for authoring conventions and a getting-started guide.
+
+### Features
+
+- Multi-app docs: any installed app can ship Markdown under `docs/{language}/`
+- Role-gated pages via frontmatter (`title`, `order`, `roles`)
+- Multi-language trees with locale picker and fallback (`de-CH` → `de` → `en`)
+- Later apps override the same logical path
+- Relative images served safely from each app's `docs/` tree
+- Mermaid diagrams in fenced code blocks
+- Desk entry points: `/app/docs`, Help menu, and the `/apps` picker
+
 ### Installation
 
 You can install this app using the [bench](https://github.com/frappe/bench) CLI:
