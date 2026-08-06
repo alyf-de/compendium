@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="brand-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg-grad)" />
+
+  <!-- Back pages -->
+  <rect x="108" y="120" width="230" height="272" rx="20" fill="#334155" transform="rotate(-8 223 256)" />
+  <rect x="170" y="120" width="230" height="272" rx="20" fill="url(#brand-blue)" opacity="0.5" transform="rotate(6 285 256)" />
+
+  <!-- Front page -->
+  <rect x="136" y="116" width="240" height="280" rx="20" fill="#F8FAFC" />
+  <rect x="136" y="116" width="44" height="280" rx="20" fill="url(#brand-blue)" />
+  <rect x="164" y="116" width="16" height="280" fill="url(#brand-blue)" />
+
+  <!-- Content bars -->
+  <rect x="208" y="176" width="120" height="22" rx="11" fill="#1E293B" />
+  <rect x="208" y="226" width="136" height="14" rx="7" fill="#94A3B8" />
+  <rect x="208" y="262" width="100" height="14" rx="7" fill="#CBD5E1" />
+</svg>

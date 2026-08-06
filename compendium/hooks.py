@@ -11,15 +11,21 @@ app_license = "mit"
 required_apps = ["frappe"]
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "compendium",
-# 		"logo": "/assets/compendium/logo.png",
-# 		"title": "Compendium",
-# 		"route": "/compendium",
-# 		"has_permission": "compendium.api.permission.has_app_permission"
-# 	}
-# ]
+# /compendium redirects to /app/docs — Frappe's apps picker rewrites unknown
+# /app/<name> routes to a workspace, so a Page route cannot be used directly.
+add_to_apps_screen = [
+	{
+		"name": "compendium",
+		"logo": "/assets/compendium/images/compendium-logo.svg",
+		"title": "Compendium",
+		"route": "/compendium",
+		"has_permission": "compendium.permissions.has_app_permission",
+	}
+]
+
+website_redirects = [
+	{"source": "/compendium", "target": "/app/docs"},
+]
 
 # Includes in <head>
 # ------------------
