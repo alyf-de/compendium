@@ -8,7 +8,7 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["frappe"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -26,7 +26,19 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/compendium/css/compendium.css"
-# app_include_js = "/assets/compendium/js/compendium.js"
+app_include_js = [
+	"/assets/compendium/js/breadcrumbs_polyfill.js",
+]
+
+# Add Documentation to Desk Help dropdown on sites that use standard help items
+standard_help_items = [
+	{
+		"item_label": "Documentation",
+		"item_type": "Route",
+		"route": "/app/docs",
+		"is_standard": 1,
+	},
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/compendium/css/compendium.css"
@@ -83,7 +95,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "compendium.install.before_install"
-# after_install = "compendium.install.after_install"
+after_install = "compendium.install.after_install"
 
 # Uninstallation
 # ------------

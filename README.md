@@ -1,6 +1,6 @@
 ### Compendium
 
-Serves docs provided by your frappe apps.
+In-app documentation for Frappe Desk. Compendium aggregates Markdown files from every installed app's `docs/{language}/**/*.md` tree and serves them at `/app/docs`.
 
 ### Installation
 
@@ -8,9 +8,13 @@ You can install this app using the [bench](https://github.com/frappe/bench) CLI:
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
-bench install-app compendium
+bench get-app $URL_OF_THIS_REPO --branch version-15
+bench --site your-site install-app compendium
 ```
+
+After install, open `/app/docs` in Desk (or use **Documentation** in the Help menu).
+
+Other apps can ship their own docs by adding a `docs/` folder to their package, for example `my_app/docs/en/guides/setup.md`.
 
 ### Contributing
 
