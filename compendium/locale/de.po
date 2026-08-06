@@ -1,0 +1,59 @@
+# German translations for Compendium.
+# Copyright (C) 2026 ALYF GmbH
+# This file is distributed under the same license as the Compendium project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Compendium VERSION\n"
+"Report-Msgid-Bugs-To: hallo@alyf.de\n"
+"POT-Creation-Date: 2026-08-06 18:56+0053\n"
+"PO-Revision-Date: 2026-08-06 18:56+0053\n"
+"Last-Translator: hallo@alyf.de\n"
+"Language: de\n"
+"Language-Team: hallo@alyf.de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#: compendium/docs.py:621
+msgid "Documentation asset not found"
+msgstr "Dokumentationsressource nicht gefunden"
+
+#: compendium/docs.py:473
+msgid "Documentation page not found"
+msgstr "Dokumentationsseite nicht gefunden"
+
+#: compendium/docs.py:618 compendium/docs.py:628 compendium/docs.py:632
+msgid "Invalid asset path"
+msgstr "Ungültiger Ressourcenpfad"
+
+#: compendium/docs.py:402
+msgid "Invalid documentation locale"
+msgstr "Ungültige Dokumentationssprache"
+
+#: compendium/docs.py:461
+msgid "Invalid documentation path"
+msgstr "Ungültiger Dokumentationspfad"
+
+#: compendium/compendium/page/docs/docs.js:386
+msgid "No documentation is available for your account."
+msgstr "Für Ihr Konto ist keine Dokumentation verfügbar."
+
+#: compendium/docs.py:476
+msgid "No read permission for documentation page {0}"
+msgstr "Keine Leseberechtigung für Dokumentationsseite {0}"
+
+#: compendium/compendium/page/docs/docs.js:408
+msgid "Unable to load documentation page {0}"
+msgstr "Dokumentationsseite {0} konnte nicht geladen werden"
+
+#: compendium/compendium/page/docs/docs.js:340
+msgid "You can see this page because you have the role {0}."
+msgstr "Sie können diese Seite sehen, weil Sie die Rolle {0} haben."
+
+#: compendium/compendium/page/docs/docs.js:341
+msgid "You can see this page because you have the roles {0}."
+msgstr "Sie können diese Seite sehen, weil Sie die Rollen {0} haben."
