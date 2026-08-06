@@ -19,6 +19,23 @@ context("Documentation Browser", () => {
 		cy.get(".navbar-breadcrumbs li").last().should("contain", "Authoring Guide");
 	});
 
+	it("collapses and expands sidebar groups", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		// Active path ancestors are expanded; sibling groups stay collapsed.
+		cy.get('.docs-tree-item[data-path="compendium"]').should("not.have.class", "collapsed");
+		cy.get(
+			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle'
+		).click();
+		cy.get('.docs-tree-item[data-path="compendium"]').should("have.class", "collapsed");
+		cy.get('.docs-tree-item[data-path="compendium"] > .docs-tree-children').should(
+			"not.be.visible"
+		);
+		cy.get(
+			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle'
+		).click();
+		cy.get('.docs-tree-item[data-path="compendium"]').should("not.have.class", "collapsed");
+	});
+
 	it("renders mermaid diagrams from fenced blocks", () => {
 		cy.visit("/app/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");

@@ -20,6 +20,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.wrapper = wrapper;
 		this.tree_data = [];
 		this.page_paths = new Set();
+		this.expanded_paths = new Set();
 		this.current_path = null;
 		this.current_locale = frappe.boot.lang || "en";
 		this.locales = [];
@@ -48,14 +49,25 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state = this.$content.find(".docs-state");
 		this.$state_message = this.$content.find(".docs-state-content");
 
+		this.$tree.on("click", ".docs-tree-toggle", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			const path = $(event.currentTarget).closest(".docs-tree-item").attr("data-path");
+			if (path === undefined) {
+				return;
+			}
+			this.toggle_group(path);
+		});
+
 		this.$tree.on("click", ".docs-tree-node", (event) => {
 			event.preventDefault();
 			const $node = $(event.currentTarget);
-			if ($node.attr("data-has-page") !== "1") {
-				return;
-			}
 			const path = $node.attr("data-path");
 			if (path === undefined) {
+				return;
+			}
+			if ($node.attr("data-has-page") !== "1") {
+				this.toggle_group(path);
 				return;
 			}
 			this.navigate_to(path);
@@ -233,23 +245,48 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	render_tree_nodes(nodes) {
 		const $list = $('<div class="docs-tree-list"></div>');
 		for (const node of nodes) {
-			const $item = $('<div class="docs-tree-item"></div>');
+			const has_children = Boolean(node.children?.length);
+			const collapsed = has_children && !this.expanded_paths.has(node.path);
+			const escaped_path = frappe.utils.escape_html(node.path);
+			const $item = $(
+				`<div class="docs-tree-item" data-path="${escaped_path}" data-has-children="${
+					has_children ? "1" : "0"
+				}"></div>`
+			);
+			if (collapsed) {
+				$item.addClass("collapsed");
+			}
+
+			const $row = $('<div class="docs-tree-row"></div>').appendTo($item);
+			if (has_children) {
+				$(
+					`<button type="button" class="docs-tree-toggle" aria-expanded="${
+						collapsed ? "false" : "true"
+					}" aria-label="${frappe.utils.escape_html(
+						__("Toggle {0}", [node.title])
+					)}">${frappe.utils.icon("right", "xs")}</button>`
+				).appendTo($row);
+			} else {
+				$('<span class="docs-tree-toggle-spacer" aria-hidden="true"></span>').appendTo(
+					$row
+				);
+			}
+
 			const classes = ["docs-tree-node"];
 			if (node.path === this.current_path) {
 				classes.push("active");
+				$row.addClass("active");
 			}
 			if (!node.has_page) {
 				classes.push("disabled");
 			}
 			$(
-				`<a class="${classes.join(" ")}" data-path="${frappe.utils.escape_html(
-					node.path
-				)}" data-has-page="${
+				`<a class="${classes.join(" ")}" data-path="${escaped_path}" data-has-page="${
 					node.has_page ? "1" : "0"
 				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
-			).appendTo($item);
+			).appendTo($row);
 
-			if (node.children?.length) {
+			if (has_children) {
 				$item.append(
 					$('<div class="docs-tree-children"></div>').append(
 						this.render_tree_nodes(node.children)
@@ -259,6 +296,28 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			$list.append($item);
 		}
 		return $list;
+	}
+
+	toggle_group(path) {
+		if (this.expanded_paths.has(path)) {
+			this.expanded_paths.delete(path);
+		} else {
+			this.expanded_paths.add(path);
+		}
+		this.render_tree();
+	}
+
+	expand_ancestors(path) {
+		if (path === null || path === undefined) {
+			return;
+		}
+		const trail = this.find_path_trail(this.tree_data, path);
+		if (!trail?.length) {
+			return;
+		}
+		for (const node of trail) {
+			this.expanded_paths.add(node.path);
+		}
 	}
 
 	select_first_page() {
@@ -297,6 +356,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 
 	load_page(path) {
 		this.current_path = path;
+		this.expand_ancestors(path);
 		this.render_tree();
 		this.show_loading();
 
