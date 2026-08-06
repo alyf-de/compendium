@@ -3,6 +3,9 @@ import tempfile
 from unittest.mock import patch
 
 import frappe
+from frappe import _
+from frappe.tests.utils import FrappeTestCase
+
 from compendium.docs import (
 	build_navigation_tree,
 	discover_pages,
@@ -19,7 +22,6 @@ from compendium.docs import (
 	resolve_asset_path,
 	resolve_locale,
 )
-from frappe.tests.utils import FrappeTestCase
 
 
 class TestDocs(FrappeTestCase):
@@ -100,6 +102,16 @@ class TestDocs(FrappeTestCase):
 				get_page("public", locale="en")
 				with self.assertRaises(frappe.PermissionError):
 					get_page("admin", locale="en")
+
+	def test_get_page_returns_matching_user_roles(self):
+		with self.docs_environment(
+			{
+				"en/admin.md": "---\ntitle: Admin\nroles:\n  - System Manager\n  - Desk User\n---\n# Admin",
+			}
+		):
+			with patch("compendium.docs.get_user_roles", return_value=["Desk User", "Sales User"]):
+				doc = get_page("admin", locale="en")
+			self.assertEqual(doc["roles"], [_("Desk User")])
 
 	def test_direct_access_denied_raises_permission_error(self):
 		with self.docs_environment({"en/admin.md": "---\ntitle: Admin\nroles: System Manager\n---\n# Admin"}):

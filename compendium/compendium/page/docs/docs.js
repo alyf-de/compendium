@@ -323,9 +323,23 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
+		this.render_roles(doc.roles);
 		this.render_mermaid();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
+	}
+
+	render_roles(roles) {
+		if (!roles?.length) {
+			return;
+		}
+
+		const labels = roles.map((role) => frappe.utils.escape_html(role)).join(", ");
+		const message =
+			roles.length === 1
+				? __("You can see this page because you have the role {0}.", [labels])
+				: __("You can see this page because you have the roles {0}.", [labels]);
+		this.$reading.append(`<footer class="docs-page-roles">${message}</footer>`);
 	}
 
 	render_mermaid() {

@@ -210,6 +210,14 @@
 	height: auto;
 }
 
+.docs-page-roles {
+	margin-top: var(--margin-xl);
+	padding-top: var(--padding-md);
+	border-top: 1px solid var(--border-color);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
 /* Mobile / tablet: keep locale picker under the tree in the overlay drawer */
 @media (max-width: 991px) {
 	.docs-sidebar .docs-tree {

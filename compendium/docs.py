@@ -30,12 +30,15 @@ def get_page(path: str = "", locale: str | None = None):
 	locale = normalize_locale(locale)
 	page = get_page_record(normalize_path(path), locale=locale, check_permission=True)
 	content = render_page_content(page.body, page.path, locale)
+	user_roles = set(get_user_roles())
+	matching_roles = [role for role in page.roles if role in user_roles]
 	return {
 		"path": page.path,
 		"title": page.title,
 		"locale": locale,
 		"content": content,
 		"toc_html": render_toc(page.body),
+		"roles": [_(role) for role in matching_roles],
 	}
 
 

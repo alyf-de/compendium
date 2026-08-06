@@ -24,6 +24,12 @@ context("Documentation Browser", () => {
 		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
 	});
 
+	it("shows which of the user's roles grant access", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.get(".docs-page-roles").should("contain", "System Manager");
+		cy.get(".docs-page-roles").should("contain", "because you have");
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/app/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");
