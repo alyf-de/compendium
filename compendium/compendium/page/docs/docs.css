@@ -239,6 +239,27 @@
 	line-height: 1.4;
 }
 
+.docs-reading-pane blockquote {
+	margin: var(--margin-md) 0;
+	padding: var(--padding-sm) var(--padding-md);
+	border: 1px solid var(--border-color);
+	border-left: 3px solid var(--info);
+	border-radius: var(--border-radius);
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	background: var(--subtle-fg);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.docs-reading-pane blockquote > :first-child {
+	margin-top: 0;
+}
+
+.docs-reading-pane blockquote > :last-child {
+	margin-bottom: 0;
+}
+
 .docs-state {
 	display: flex;
 	align-items: center;
