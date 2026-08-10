@@ -310,6 +310,15 @@
 	font-size: 0.9em;
 }
 
+.docs-fallback-notice {
+	margin-bottom: var(--margin-lg);
+	padding: var(--padding-xs) var(--padding-sm);
+	border-left: 2px solid var(--subtle-fg);
+	background-color: var(--control-bg);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
 .docs-page-roles {
 	margin-top: var(--margin-xl);
 	padding-top: var(--padding-md);
