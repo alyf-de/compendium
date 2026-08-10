@@ -337,6 +337,38 @@ class TestDocs(FrappeTestCase):
 				self.assertEqual(page.title, "Leitfaden")
 				self.assertEqual(page.order, 0, "order now comes from the French page")
 
+	def test_canonical_page_stays_within_the_owning_app(self):
+		with tempfile.TemporaryDirectory() as tmp:
+			first_app = os.path.join(tmp, "first_app")
+			second_app = os.path.join(tmp, "second_app")
+			os.makedirs(os.path.join(first_app, "docs", "de"))
+			os.makedirs(os.path.join(second_app, "docs", "de"))
+			os.makedirs(os.path.join(second_app, "docs", "fr"))
+
+			with open(os.path.join(first_app, "docs", "de", "shared.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Geteilt\nroles: Desk User\n---\nDeutsch")
+			with open(os.path.join(second_app, "docs", "de", "other.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Anderes\nroles: System Manager\n---\nAnderes")
+			with open(os.path.join(second_app, "docs", "fr", "shared.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Partage\nroles: System Manager\n---\nFrancais")
+
+			with patch("compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]):
+
+				def get_app_path(app):
+					return os.path.join(tmp, app)
+
+				with patch("compendium.docs.get_app_path", side_effect=get_app_path):
+					# second_app owns the path but has no page in its own canonical
+					# language (de) there — the earlier app's de page must not become
+					# canonical and lend its roles to second_app's content
+					page = discover_pages("fr")["shared"]
+					self.assertEqual(page.app, "second_app")
+					self.assertEqual(page.roles, ["System Manager"])
+
+					page = discover_pages("de")["shared"]
+					self.assertEqual(page.app, "second_app")
+					self.assertEqual(page.roles, ["System Manager"])
+
 	def test_older_translation_does_not_override_newer_english(self):
 		with tempfile.TemporaryDirectory() as tmp:
 			first_app = os.path.join(tmp, "first_app")

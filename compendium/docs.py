@@ -1,6 +1,7 @@
 # Copyright (c) 2026, ALYF GmbH and Contributors
 # License: MIT. See LICENSE
 
+import importlib.util
 import os
 import re
 from collections import Counter
@@ -258,8 +259,9 @@ def pick_canonical_page(variants, canonical_languages):
 	"""The variant that owns a path's metadata.
 
 	English wherever English exists, so apps that document in English are unaffected.
-	For a path with no English variant it is the canonical language of the app that
-	owns the path.
+	For a path with no English variant it is the owning app's page in that app's
+	canonical language — never another app's, or the owning app's content would be
+	served under a foreign app's roles.
 	"""
 	english_page = variants.get(DEFAULT_LANG)
 	if english_page:
@@ -267,7 +269,8 @@ def pick_canonical_page(variants, canonical_languages):
 
 	owner = max(variants.values(), key=lambda page: page.app_index)
 	language = canonical_languages.get(owner.app, owner.language)
-	return variants.get(language) or owner
+	canonical = variants.get(language)
+	return canonical if canonical and canonical.app == owner.app else owner
 
 
 def get_canonical_languages(raw_pages):
@@ -301,11 +304,13 @@ def get_canonical_languages(raw_pages):
 
 def get_declared_canonical_language(app):
 	try:
-		declared = frappe.get_hooks("docs_canonical_language", app_name=app)
-	except Exception:
-		# ponytail: an app whose hooks can't be loaded simply doesn't declare one
+		# frappe.get_hooks() prints and raises for an app it cannot import
+		if not importlib.util.find_spec(f"{app}.hooks"):
+			return None
+	except (ImportError, ValueError):
 		return None
 
+	declared = frappe.get_hooks("docs_canonical_language", app_name=app)
 	return declared[-1] if declared else None
 
 
