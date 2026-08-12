@@ -365,9 +365,8 @@
 @media (min-width: 1200px) {
 	.docs-browser.has-toc {
 		display: grid;
-		grid-template-columns: minmax(0, 75ch) minmax(12rem, 16rem);
+		grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
 		align-items: start;
-		justify-content: center;
 		gap: var(--margin-xl);
 	}
 
@@ -378,10 +377,6 @@
 
 	.docs-toc-pane:not(.hide) {
 		display: block;
-		position: sticky;
-		top: var(--padding-md);
-		max-height: calc(100vh - var(--navbar-height) - var(--page-head-height));
-		overflow-y: auto;
 		padding: var(--padding-md);
 		border-left: 1px solid var(--border-color);
 	}
