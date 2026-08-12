@@ -55,6 +55,15 @@ context("Documentation Browser", () => {
 		cy.get(".docs-page-roles").should("contain", "because you have");
 	});
 
+	it("renders a TOC and follows heading deep links", () => {
+		cy.viewport(1280, 720);
+		cy.visit("/app/docs/en/compendium/docs/authoring#role-defaults");
+		cy.get(".docs-toc-pane").should("be.visible");
+		cy.get('.docs-toc-pane a[href="#role-defaults"]').should("exist");
+		cy.location("hash").should("eq", "#role-defaults");
+		cy.get(".docs-reading-pane h2#role-defaults").should("be.visible");
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/app/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");

@@ -46,6 +46,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		});
 		this.$content = $(frappe.render_template("docs")).appendTo(this.page.main);
 		this.$reading = this.$content.find(".docs-reading-pane");
+		this.$toc_pane = this.$content.find(".docs-toc-pane");
+		this.$toc = this.$content.find(".docs-toc").attr("aria-label", __("On this page"));
 		this.$state = this.$content.find(".docs-state");
 		this.$state_message = this.$content.find(".docs-state-content");
 
@@ -376,6 +378,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	show_loading() {
 		this.$state.addClass("hide");
 		this.$reading.removeClass("hide").addClass("docs-loading").html("");
+		this.$toc_pane.addClass("hide");
 	}
 
 	show_page(doc) {
@@ -383,11 +386,33 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
+		this.$toc.html(doc.toc_html || "");
+		this.$toc_pane.toggleClass("hide", !doc.toc_html);
+		this.scroll_to_heading();
 		this.render_roles(doc.roles);
 		this.render_mermaid();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
+	}
+
+	scroll_to_heading() {
+		const hash = window.location.hash.slice(1);
+		if (!hash) {
+			return;
+		}
+
+		let id;
+		try {
+			id = decodeURIComponent(hash);
+		} catch {
+			return;
+		}
+
+		const heading = document.getElementById(id);
+		if (heading && this.$reading.has(heading).length) {
+			heading.scrollIntoView();
+		}
 	}
 
 	render_roles(roles) {
