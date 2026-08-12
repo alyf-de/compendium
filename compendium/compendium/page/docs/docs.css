@@ -84,6 +84,10 @@
 	flex: 1 0 auto;
 }
 
+.docs-toc-pane {
+	display: none;
+}
+
 .docs-locale-picker.hide {
 	display: none;
 }
@@ -186,6 +190,37 @@
 	color: var(--text-color);
 	font-size: 1rem;
 	line-height: 1.6;
+}
+
+.docs-toc {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
+
+.docs-toc ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.docs-toc ul ul {
+	padding-left: var(--padding-md);
+}
+
+.docs-toc li + li {
+	margin-top: var(--margin-xs);
+}
+
+.docs-toc a {
+	color: var(--text-muted);
+	text-decoration: none;
+}
+
+.docs-toc a:hover,
+.docs-toc a:focus {
+	color: var(--primary);
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
 }
 
 /* Desk sets a { color: text }, so markdown links need an explicit highlight. */
@@ -325,6 +360,26 @@
 	border-top: 1px solid var(--border-color);
 	color: var(--text-muted);
 	font-size: var(--text-sm);
+}
+
+@media (min-width: 1200px) {
+	.docs-browser.has-toc {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
+		align-items: start;
+		gap: var(--margin-xl);
+	}
+
+	.docs-browser.has-toc .docs-reading-pane {
+		max-width: none;
+		margin-inline: 0;
+	}
+
+	.docs-toc-pane:not(.hide) {
+		display: block;
+		padding: var(--padding-md);
+		border-left: 1px solid var(--border-color);
+	}
 }
 
 /* Mobile / tablet: keep locale picker under the tree in the overlay drawer */

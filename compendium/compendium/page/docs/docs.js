@@ -25,6 +25,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.current_locale = frappe.boot.lang || "en";
 		this.locales = [];
 		this._view_seq = 0;
+		this.layout_ready = Promise.resolve();
 		this.setup_layout();
 	}
 
@@ -47,6 +48,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		});
 		this.$content = $(frappe.render_template("docs")).appendTo(this.page.main);
 		this.$reading = this.$content.find(".docs-reading-pane");
+		this.$toc_pane = this.$content.find(".docs-toc-pane");
+		this.$toc = this.$content.find(".docs-toc").attr("aria-label", __("On this page"));
 		this.$state = this.$content.find(".docs-state");
 		this.$state_message = this.$content.find(".docs-state-content");
 
@@ -72,6 +75,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				return;
 			}
 			this.navigate_to(path);
+		});
+
+		// Desk treats href="#…" as v1 routes (/app/%23…). Keep in-page anchors local.
+		this.$content.on("click", 'a[href^="#"]', (event) => {
+			this.follow_in_page_anchor(event);
 		});
 	}
 
@@ -374,6 +382,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	show_loading() {
 		this.$state.addClass("hide");
 		this.$reading.removeClass("hide").addClass("docs-loading").html("");
+		this.$toc_pane.addClass("hide");
+		this.$content.removeClass("has-toc");
 	}
 
 	show_page(doc, variants) {
@@ -381,12 +391,84 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
+		const toc_html = doc.toc_html || "";
+		this.$toc.html(toc_html);
+		this.$toc_pane.toggleClass("hide", !toc_html);
+		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.render_fallback_notice(doc);
 		this.render_roles(doc.roles);
-		this.render_mermaid();
+		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
+		// fragment scrolls wait on layout_ready so they use the final layout.
+		this.layout_ready = this.render_mermaid();
+		this.scroll_to_heading();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.render_locale_picker(variants || []);
+	}
+
+	follow_in_page_anchor(event) {
+		const href = event.currentTarget.getAttribute("href");
+		if (!href || href === "#") {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		let id;
+		try {
+			id = decodeURIComponent(href.slice(1));
+		} catch {
+			return;
+		}
+		if (!id) {
+			return;
+		}
+
+		// Do not set window.location.hash — Desk's hashchange handler treats it as a
+		// v1 route and pushState("installieren") resolves relative to the current path.
+		const url = `${window.location.pathname}${window.location.search}${href}`;
+		if (
+			`${window.location.pathname}${window.location.search}${window.location.hash}` !== url
+		) {
+			history.replaceState(null, "", url);
+		}
+		this.scroll_to_heading();
+	}
+
+	scroll_to_heading() {
+		if (!window.location.hash.slice(1)) {
+			return;
+		}
+
+		const path = this.current_path;
+		this.layout_ready.finally(() => {
+			if (this.current_path !== path) {
+				return;
+			}
+
+			const hash = window.location.hash.slice(1);
+			if (!hash) {
+				return;
+			}
+
+			let id;
+			try {
+				id = decodeURIComponent(hash);
+			} catch {
+				return;
+			}
+			this.scroll_to_id(id);
+		});
+	}
+
+	scroll_to_id(id) {
+		const heading = document.getElementById(id);
+		if (!heading || !this.$reading.has(heading).length) {
+			return false;
+		}
+		heading.scrollIntoView();
+		return true;
 	}
 
 	render_fallback_notice(doc) {
@@ -418,7 +500,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	render_mermaid() {
 		const $blocks = this.$reading.find("pre code.language-mermaid, pre code.mermaid");
 		if (!$blocks.length) {
-			return;
+			return Promise.resolve();
 		}
 
 		const nodes = [];
@@ -428,11 +510,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			nodes.push($diagram.get(0));
 		});
 
-		frappe.require("mermaid.bundle.js").then(() => {
-			this.ensure_mermaid().then(() =>
-				compendium.mermaid.run({ nodes, suppressErrors: true })
+		return frappe
+			.require("mermaid.bundle.js")
+			.then(() =>
+				this.ensure_mermaid().then(() =>
+					compendium.mermaid.run({ nodes, suppressErrors: true })
+				)
 			);
-		});
 	}
 
 	highlight_code() {

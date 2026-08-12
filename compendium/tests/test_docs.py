@@ -115,6 +115,16 @@ class TestDocs(FrappeTestCase):
 				doc = get_page("admin", locale="en")
 			self.assertEqual(doc["roles"], [_("Desk User")])
 
+	def test_get_page_includes_toc_links_for_heading_anchors(self):
+		with self.docs_environment(
+			{
+				"en/page.md": "# Page\n\n## First section\n\n### Nested section",
+			}
+		):
+			doc = get_page("page", locale="en")
+			self.assertIn('id="first-section"', doc["content"])
+			self.assertIn('href="#first-section"', doc["toc_html"])
+
 	def test_direct_access_denied_raises_permission_error(self):
 		with self.docs_environment({"en/admin.md": "---\ntitle: Admin\nroles: System Manager\n---\n# Admin"}):
 			frappe.set_user("test@example.com")

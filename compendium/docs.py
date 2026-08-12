@@ -454,8 +454,9 @@ def build_page_record(filepath, app, docs_root, app_path, language, logical_path
 		source = f.read()
 
 	res = get_frontmatter(source)
+	# get_frontmatter returns an empty body when there is no --- frontmatter block
 	attributes = parse_frontmatter_attributes(res["attributes"])
-	body = res["body"]
+	body = res["body"] if res["attributes"] else source
 	page_name = os.path.splitext(os.path.basename(filepath))[0]
 	title = attributes.get("title") or extract_title(body, logical_path or page_name)
 
