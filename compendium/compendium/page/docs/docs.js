@@ -512,11 +512,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			nodes.push($diagram.get(0));
 		});
 
-		return frappe.require("mermaid.bundle.js").then(() =>
-			this.ensure_mermaid().then(() =>
-				compendium.mermaid.run({ nodes, suppressErrors: true })
-			)
-		);
+		return frappe
+			.require("mermaid.bundle.js")
+			.then(() =>
+				this.ensure_mermaid().then(() =>
+					compendium.mermaid.run({ nodes, suppressErrors: true })
+				)
+			);
 	}
 
 	highlight_code() {
