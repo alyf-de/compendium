@@ -244,8 +244,13 @@ class TestDocs(FrappeTestCase):
 			self.assertEqual(pages["country/tax"].title, "Steuer")
 			self.assertEqual(pages["country/tax"].order, 5)
 
+			# a page that exists in one language only stays in the tree for every
+			# reader, rendered in the language it was written in
 			pages = discover_pages("en")
-			self.assertNotIn("country/tax", pages)
+			self.assertIn("country/tax", pages)
+			self.assertEqual(pages["country/tax"].title, "Steuer")
+			self.assertEqual(pages["country/tax"].language, "de")
+			self.assertEqual(pages["country/tax"].order, 5)
 
 	def test_localized_only_path_renders_for_other_language_user(self):
 		with self.docs_environment(
@@ -253,7 +258,7 @@ class TestDocs(FrappeTestCase):
 				"de/country/tax.md": "---\ntitle: Steuer\nroles: Desk User\n---\n# Steuer",
 			}
 		):
-			self.assertNotIn("country/tax", discover_pages("en"))
+			self.assertIn("country/tax", discover_pages("en"))
 
 			page = get_page_record("country/tax", locale="de")
 			self.assertEqual(page.title, "Steuer")
@@ -273,6 +278,96 @@ class TestDocs(FrappeTestCase):
 			with patch("compendium.docs.get_user_roles", return_value=["Desk User"]):
 				with self.assertRaises(frappe.PermissionError):
 					get_page_record("secret", locale="de", check_permission=True)
+
+	def test_app_without_english_docs_is_visible_to_english_readers(self):
+		with self.docs_environment(
+			{
+				"de/index.md": "---\ntitle: Start\norder: 0\n---\n# Start",
+				"de/handbuch.md": "---\ntitle: Handbuch\norder: 1\n---\n# Handbuch",
+			}
+		):
+			pages = discover_pages("en")
+			self.assertEqual(pages["handbuch"].title, "Handbuch")
+
+			tree = build_navigation_tree("en")
+			self.assertEqual({node["path"] for node in tree}, {"", "handbuch"})
+
+			frappe.local.lang = "en"
+			self.assertEqual(resolve_locale(""), {"locale": "de", "path": ""})
+
+	def test_get_page_marks_a_page_shown_in_another_language(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# English",
+				"de/country/tax.md": "---\ntitle: Steuer\n---\n# Steuer",
+			}
+		):
+			doc = get_page("country/tax", locale="en")
+			self.assertEqual(doc["language"], "de")
+			self.assertTrue(doc["is_fallback"])
+
+			doc = get_page("country/tax", locale="de")
+			self.assertFalse(doc["is_fallback"])
+
+			doc = get_page("country/tax", locale="de-CH")
+			self.assertFalse(doc["is_fallback"], "the parent language is not a fallback")
+
+			doc = get_page("guide", locale="en")
+			self.assertFalse(doc["is_fallback"])
+
+	def test_canonical_language_of_an_app_without_english_docs(self):
+		with self.docs_environment(
+			{
+				"de/guide.md": "---\ntitle: Leitfaden\norder: 5\nroles: System Manager\n---\n# Deutsch",
+				"de/extra.md": "---\ntitle: Extra\n---\n# Extra",
+				"fr/guide.md": "---\ntitle: Guide FR\n---\n# Francais",
+			}
+		):
+			# German carries the most pages, so it owns order and roles
+			page = discover_pages("fr")["guide"]
+			self.assertEqual(page.title, "Guide FR")
+			self.assertEqual(page.order, 5)
+			self.assertEqual(page.roles, ["System Manager"])
+
+			# and a page missing from the reader's language still resolves
+			self.assertEqual(discover_pages("fr")["extra"].title, "Extra")
+
+			with patch("compendium.docs.get_declared_canonical_language", return_value="fr"):
+				page = discover_pages("de")["guide"]
+				self.assertEqual(page.title, "Leitfaden")
+				self.assertEqual(page.order, 0, "order now comes from the French page")
+
+	def test_canonical_page_stays_within_the_owning_app(self):
+		with tempfile.TemporaryDirectory() as tmp:
+			first_app = os.path.join(tmp, "first_app")
+			second_app = os.path.join(tmp, "second_app")
+			os.makedirs(os.path.join(first_app, "docs", "de"))
+			os.makedirs(os.path.join(second_app, "docs", "de"))
+			os.makedirs(os.path.join(second_app, "docs", "fr"))
+
+			with open(os.path.join(first_app, "docs", "de", "shared.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Geteilt\nroles: Desk User\n---\nDeutsch")
+			with open(os.path.join(second_app, "docs", "de", "other.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Anderes\nroles: System Manager\n---\nAnderes")
+			with open(os.path.join(second_app, "docs", "fr", "shared.md"), "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Partage\nroles: System Manager\n---\nFrancais")
+
+			with patch("compendium.docs.get_installed_apps", return_value=["first_app", "second_app"]):
+
+				def get_app_path(app):
+					return os.path.join(tmp, app)
+
+				with patch("compendium.docs.get_app_path", side_effect=get_app_path):
+					# second_app owns the path but has no page in its own canonical
+					# language (de) there — the earlier app's de page must not become
+					# canonical and lend its roles to second_app's content
+					page = discover_pages("fr")["shared"]
+					self.assertEqual(page.app, "second_app")
+					self.assertEqual(page.roles, ["System Manager"])
+
+					page = discover_pages("de")["shared"]
+					self.assertEqual(page.app, "second_app")
+					self.assertEqual(page.roles, ["System Manager"])
 
 	def test_older_translation_does_not_override_newer_english(self):
 		with tempfile.TemporaryDirectory() as tmp:
@@ -418,8 +513,10 @@ class TestDocs(FrappeTestCase):
 			self.assertEqual([variant["locale"] for variant in variants], ["de", "en"])
 			self.assertEqual(variants[0]["title"], "Leitfaden")
 
+			# viewable from either locale; the English view renders the German page
 			localized_only = get_page_variants("country/tax")
-			self.assertEqual([variant["locale"] for variant in localized_only], ["de"])
+			self.assertEqual([variant["locale"] for variant in localized_only], ["de", "en"])
+			self.assertEqual({variant["language"] for variant in localized_only}, {"de"})
 
 	def docs_environment(self, files):
 		return DocsTestEnvironment(files)

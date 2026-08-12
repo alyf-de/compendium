@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Compendium VERSION\n"
 "Report-Msgid-Bugs-To: hallo@alyf.de\n"
-"POT-Creation-Date: 2026-08-06 18:56+0053\n"
-"PO-Revision-Date: 2026-08-06 18:56+0053\n"
+"POT-Creation-Date: 2026-08-12 16:33+0053\n"
+"PO-Revision-Date: 2026-08-12 16:33+0053\n"
 "Last-Translator: hallo@alyf.de\n"
 "Language-Team: hallo@alyf.de\n"
 "MIME-Version: 1.0\n"
@@ -16,43 +16,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.1\n"
 
-#: compendium/docs.py:621
+#: compendium/docs.py:589
 msgid "Documentation asset not found"
 msgstr ""
 
-#: compendium/docs.py:473
+#: compendium/docs.py:463
 msgid "Documentation page not found"
 msgstr ""
 
-#: compendium/docs.py:618 compendium/docs.py:628 compendium/docs.py:632
+#: compendium/docs.py:586 compendium/docs.py:596 compendium/docs.py:600
 msgid "Invalid asset path"
 msgstr ""
 
-#: compendium/docs.py:402
+#: compendium/docs.py:394
 msgid "Invalid documentation locale"
 msgstr ""
 
-#: compendium/docs.py:461
+#: compendium/docs.py:453
 msgid "Invalid documentation path"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:386
+#: compendium/compendium/page/docs/docs.js:478
 msgid "No documentation is available for your account."
 msgstr ""
 
-#: compendium/docs.py:476
+#: compendium/docs.py:466
 msgid "No read permission for documentation page {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:408
+#: compendium/compendium/page/docs/docs.js:401
+msgid "This page is only available in {0}."
+msgstr ""
+
+#: compendium/compendium/page/docs/docs.js:266
+msgid "Toggle {0}"
+msgstr ""
+
+#: compendium/compendium/page/docs/docs.js:500
 msgid "Unable to load documentation page {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:340
+#: compendium/compendium/page/docs/docs.js:415
 msgid "You can see this page because you have the role {0}."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:341
+#: compendium/compendium/page/docs/docs.js:416
 msgid "You can see this page because you have the roles {0}."
 msgstr ""
 
