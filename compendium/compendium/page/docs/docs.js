@@ -427,7 +427,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		// Do not set window.location.hash — Desk's hashchange handler treats it as a
 		// v1 route and pushState("installieren") resolves relative to the current path.
 		const url = `${window.location.pathname}${window.location.search}${href}`;
-		if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== url) {
+		if (
+			`${window.location.pathname}${window.location.search}${window.location.hash}` !== url
+		) {
 			history.replaceState(null, "", url);
 		}
 		this.scroll_to_id(id);
