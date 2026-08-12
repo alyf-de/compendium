@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Compendium VERSION\n"
 "Report-Msgid-Bugs-To: hallo@alyf.de\n"
-"POT-Creation-Date: 2026-08-12 18:04+0053\n"
-"PO-Revision-Date: 2026-08-12 18:04+0053\n"
+"POT-Creation-Date: 2026-08-12 18:42+0053\n"
+"PO-Revision-Date: 2026-08-12 18:42+0053\n"
 "Last-Translator: hallo@alyf.de\n"
 "Language-Team: hallo@alyf.de\n"
 "MIME-Version: 1.0\n"
@@ -22,59 +22,63 @@ msgstr ""
 msgid "Compendium"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:421
+#: compendium/compendium/page/docs/docs.js:443
 msgid "Copy link"
 msgstr ""
 
-#: compendium/docs.py:587
+#: compendium/docs.py:734
 msgid "Documentation asset not found"
 msgstr ""
 
-#: compendium/docs.py:461
+#: compendium/docs.py:524
 msgid "Documentation page not found"
 msgstr ""
 
-#: compendium/docs.py:584 compendium/docs.py:594 compendium/docs.py:598
+#: compendium/compendium/page/docs/docs.js:432
+msgid "Edit on GitHub"
+msgstr ""
+
+#: compendium/docs.py:731 compendium/docs.py:741 compendium/docs.py:745
 msgid "Invalid asset path"
 msgstr ""
 
-#: compendium/docs.py:391
+#: compendium/docs.py:454
 msgid "Invalid documentation locale"
 msgstr ""
 
-#: compendium/docs.py:451
+#: compendium/docs.py:514
 msgid "Invalid documentation path"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:598
+#: compendium/compendium/page/docs/docs.js:623
 msgid "No documentation is available for your account."
 msgstr ""
 
-#: compendium/docs.py:464
+#: compendium/docs.py:527
 msgid "No read permission for documentation page {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:51
+#: compendium/compendium/page/docs/docs.js:52
 msgid "On this page"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:519
+#: compendium/compendium/page/docs/docs.js:544
 msgid "This page is only available in {0}."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:277
+#: compendium/compendium/page/docs/docs.js:269
 msgid "Toggle {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:620
+#: compendium/compendium/page/docs/docs.js:647
 msgid "Unable to load documentation page {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:533
+#: compendium/compendium/page/docs/docs.js:558
 msgid "You can see this page because you have the role {0}."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:534
+#: compendium/compendium/page/docs/docs.js:559
 msgid "You can see this page because you have the roles {0}."
 msgstr ""
 

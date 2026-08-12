@@ -51,8 +51,8 @@ context("Documentation Browser", () => {
 
 	it("shows which of the user's roles grant access", () => {
 		cy.visit("/app/docs/en/compendium/docs/authoring");
-		cy.get(".docs-page-roles").should("contain", "System Manager");
-		cy.get(".docs-page-roles").should("contain", "because you have");
+		cy.get(".docs-page-footer").should("contain", "System Manager");
+		cy.get(".docs-page-footer").should("contain", "because you have");
 	});
 
 	it("renders a TOC and follows heading deep links", () => {
@@ -84,6 +84,15 @@ context("Documentation Browser", () => {
 		});
 		cy.get(".docs-reading-pane h2#code-blocks .docs-heading-anchor").should("exist").click();
 		cy.get("@clipboardWrite").should("have.been.calledWithMatch", /#code-blocks$/);
+	});
+
+	it("shows Edit on GitHub for Administrator when repository is set", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.get(".docs-page-footer .docs-edit-link")
+			.should("be.visible")
+			.and("contain", "Edit on GitHub")
+			.and("have.attr", "href")
+			.and("include", "github.com/alyf-de/compendium");
 	});
 
 	it("shows not-found state for missing pages", () => {

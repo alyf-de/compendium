@@ -584,13 +584,98 @@ class TestDocs(FrappeTestCase):
 			self.assertEqual(view["path"], "a")
 			self.assertEqual(view["page"]["title"], "A")
 
-	def docs_environment(self, files):
-		return DocsTestEnvironment(files)
+	def test_edit_url_for_contributor_with_repository(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# Guide",
+			},
+			repository="https://github.com/alyf-de/example.git",
+			git_branch="version-15",
+		):
+			with patch("compendium.docs.get_user_roles", return_value=["Compendium Contributor"]):
+				doc = get_page("guide", locale="en")
+
+		self.assertEqual(
+			doc["edit_url"],
+			"https://github.com/alyf-de/example/edit/version-15/frappe/docs/en/guide.md",
+		)
+
+	def test_edit_url_encodes_branch_slashes(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# Guide",
+			},
+			repository="https://github.com/alyf-de/example.git",
+			git_branch="feat/edit-on-github",
+		):
+			with patch("compendium.docs.get_user_roles", return_value=["Compendium Contributor"]):
+				doc = get_page("guide", locale="en")
+
+		self.assertEqual(
+			doc["edit_url"],
+			"https://github.com/alyf-de/example/edit/feat%2Fedit-on-github/frappe/docs/en/guide.md",
+		)
+
+	def test_git_branch_falls_back_to_origin_default(self):
+		from compendium.docs import get_app_git_branch
+
+		with tempfile.TemporaryDirectory() as tmp:
+			app_root = os.path.join(tmp, "pkg")
+			os.makedirs(app_root)
+
+			def git_output(repo_root, *args):
+				key = args
+				if key == ("rev-parse", "--abbrev-ref", "HEAD"):
+					return "feat/local-only"
+				if key == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+					return ""
+				if key == ("symbolic-ref", "--short", "refs/remotes/origin/HEAD"):
+					return "origin/version-15"
+				return ""
+
+			with (
+				patch("compendium.docs.get_app_path", return_value=app_root),
+				patch("compendium.docs._git_output", side_effect=git_output),
+				patch("compendium.docs._git_ref_exists", return_value=False),
+			):
+				self.assertEqual(get_app_git_branch("pkg"), "version-15")
+
+
+	def test_edit_url_hidden_without_contributor_role(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# Guide",
+			},
+			repository="https://github.com/alyf-de/example.git",
+			git_branch="version-15",
+		):
+			frappe.set_user("test@example.com")
+			with patch("compendium.docs.get_user_roles", return_value=["Desk User"]):
+				doc = get_page("guide", locale="en")
+
+		self.assertIsNone(doc["edit_url"])
+
+	def test_edit_url_hidden_without_repository(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# Guide",
+			},
+			git_branch="version-15",
+		):
+			with patch("compendium.docs.get_user_roles", return_value=["Compendium Contributor"]):
+				doc = get_page("guide", locale="en")
+
+		self.assertIsNone(doc["edit_url"])
+
+	def docs_environment(self, files, repository=None, git_branch=None):
+		return DocsTestEnvironment(files, repository=repository, git_branch=git_branch)
 
 
 class DocsTestEnvironment:
-	def __init__(self, files):
+	def __init__(self, files, repository=None, git_branch=None):
 		self.files = files
+		self.repository = repository
+		self.git_branch = git_branch
 		self.tmpdir = None
 		self.docs_root = None
 		self._patches = []
@@ -609,10 +694,19 @@ class DocsTestEnvironment:
 			with open(filepath, mode, encoding=encoding) as f:
 				f.write(content)
 
+		if self.repository:
+			with open(os.path.join(self.tmpdir.name, "pyproject.toml"), "w", encoding="utf-8") as f:
+				f.write(
+					"[project]\nname = \"example\"\n\n[project.urls]\n"
+					f'Repository = "{self.repository}"\n'
+				)
+
 		self._patches = [
 			patch("compendium.docs.get_installed_apps", return_value=["frappe"]),
 			patch("compendium.docs.get_app_path", return_value=app_root),
 		]
+		if self.git_branch is not None:
+			self._patches.append(patch("compendium.docs.get_app_git_branch", return_value=self.git_branch))
 		for patcher in self._patches:
 			patcher.start()
 		if hasattr(frappe.local, "request_cache"):

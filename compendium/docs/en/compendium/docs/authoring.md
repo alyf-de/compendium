@@ -76,6 +76,17 @@ that owns the canonical page or a later installed app.
 Reference images with relative paths in Markdown. Compendium serves them through
 `compendium.docs.get_asset`, so assets stay inside the owning app's `docs/` tree.
 
+## Edit on GitHub
+
+When an app declares a GitHub `Repository` URL under `[project.urls]` in its
+`pyproject.toml`, contributors with the **Compendium Contributor** role see an
+**Edit on GitHub** link that opens the Markdown file for the current page.
+
+```toml
+[project.urls]
+Repository = "https://github.com/alyf-de/compendium.git"
+```
+
 ## Mermaid diagrams
 
 Fenced `mermaid` blocks render as diagrams in the reading pane:
