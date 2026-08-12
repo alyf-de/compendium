@@ -640,7 +640,6 @@ class TestDocs(FrappeTestCase):
 			):
 				self.assertEqual(get_app_git_branch("pkg"), "version-15")
 
-
 	def test_edit_url_hidden_without_contributor_role(self):
 		with self.docs_environment(
 			{
@@ -697,8 +696,7 @@ class DocsTestEnvironment:
 		if self.repository:
 			with open(os.path.join(self.tmpdir.name, "pyproject.toml"), "w", encoding="utf-8") as f:
 				f.write(
-					"[project]\nname = \"example\"\n\n[project.urls]\n"
-					f'Repository = "{self.repository}"\n'
+					'[project]\nname = "example"\n\n[project.urls]\n' f'Repository = "{self.repository}"\n'
 				)
 
 		self._patches = [
