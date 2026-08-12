@@ -29,7 +29,7 @@ bench get-app $URL_OF_THIS_REPO --branch version-15
 bench --site your-site install-app compendium
 ```
 
-After install, open `/app/docs` in Desk (or use **Documentation** in the Help menu).
+After install, open `/app/docs` in Desk (or use **Compendium** in the Help menu).
 
 Other apps can ship their own docs by adding a `docs/` folder to their package, for example `my_app/docs/en/guides/setup.md`.
 

@@ -1,6 +1,7 @@
 import frappe
 
 DOCUMENTATION_ROUTE = "/app/docs"
+COMPENDIUM_LABEL = "Compendium"
 
 
 def after_install():
@@ -17,7 +18,7 @@ def add_documentation_help_item():
 	navbar_settings.append(
 		"help_dropdown",
 		{
-			"item_label": "Documentation",
+			"item_label": COMPENDIUM_LABEL,
 			"item_type": "Route",
 			"route": DOCUMENTATION_ROUTE,
 			"is_standard": 1,

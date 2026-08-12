@@ -36,10 +36,10 @@ app_include_js = [
 	"/assets/compendium/js/breadcrumbs_polyfill.js",
 ]
 
-# Add Documentation to Desk Help dropdown on sites that use standard help items
+# Add Compendium to Desk Help dropdown on sites that use standard help items
 standard_help_items = [
 	{
-		"item_label": "Documentation",
+		"item_label": "Compendium",
 		"item_type": "Route",
 		"route": "/app/docs",
 		"is_standard": 1,
