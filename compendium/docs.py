@@ -183,6 +183,7 @@ def get_app_path(app):
 	return frappe.get_app_path(app)
 
 
+@frappe.request_cache
 def discover_raw_pages():
 	"""Discover documentation pages from all installed apps, grouped by language."""
 	pages = {}
