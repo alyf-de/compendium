@@ -31,6 +31,70 @@ def get_page(path: str = "", locale: str | None = None):
 	"""Return rendered HTML and metadata for a documentation page at the given logical path."""
 	locale = normalize_locale(locale)
 	page = get_page_record(normalize_path(path), locale=locale, check_permission=True)
+	return build_page_payload(page, locale)
+
+
+@frappe.whitelist()
+def get_view(path: str = "", locale: str | None = None, resolve_first: int | bool = 0):
+	"""Return everything the docs browser needs for one screen.
+
+	Always includes the navigation tree. When the requested page is missing or not
+	permitted, `page` is None and `exc_type` explains why — the request still
+	succeeds so the client can render the sidebar. Pass `resolve_first` when the
+	route has a locale but no path; the first accessible page is selected.
+	"""
+	locale = normalize_locale(locale)
+	pages = discover_pages(locale)
+	tree = build_navigation_tree(locale)
+	first_path = get_first_page_path(pages)
+
+	if cint(resolve_first):
+		path = first_path
+	else:
+		path = normalize_path(path)
+
+	if path is None:
+		return {
+			"tree": tree,
+			"page": None,
+			"variants": [],
+			"path": None,
+			"first_path": None,
+			"exc_type": None,
+		}
+
+	page_record = pages.get(path)
+	if not page_record:
+		return {
+			"tree": tree,
+			"page": None,
+			"variants": [],
+			"path": path,
+			"first_path": first_path,
+			"exc_type": "DoesNotExistError",
+		}
+
+	if not is_permitted(page_record):
+		return {
+			"tree": tree,
+			"page": None,
+			"variants": [],
+			"path": path,
+			"first_path": first_path,
+			"exc_type": "PermissionError",
+		}
+
+	return {
+		"tree": tree,
+		"page": build_page_payload(page_record, locale),
+		"variants": get_page_variants(path),
+		"path": path,
+		"first_path": first_path,
+		"exc_type": None,
+	}
+
+
+def build_page_payload(page, locale):
 	content = render_page_content(page.body, page.path, locale)
 	user_roles = set(get_user_roles())
 	matching_roles = [role for role in page.roles if role in user_roles]
@@ -52,14 +116,7 @@ def get_first_page(locale: str | None = None):
 	"""Return the logical path of the first accessible documentation page."""
 	locale = normalize_locale(locale)
 	pages = discover_pages(locale)
-	permitted = sorted(
-		(page for page in pages.values() if is_permitted(page)),
-		key=lambda page: (page.order, page.title.lower(), page.path),
-	)
-	if not permitted:
-		return None
-
-	return permitted[0].path
+	return get_first_page_path(pages)
 
 
 @frappe.whitelist()

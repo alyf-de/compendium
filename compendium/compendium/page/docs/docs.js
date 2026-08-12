@@ -24,6 +24,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.current_path = null;
 		this.current_locale = frappe.boot.lang || "en";
 		this.locales = [];
+		this._view_seq = 0;
 		this.layout_ready = Promise.resolve();
 		this.setup_layout();
 	}
@@ -86,24 +87,28 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	show() {
+		if (this._ignore_next_show) {
+			this._ignore_next_show = false;
+			return;
+		}
+
+		// Bump before ensure_locales so an in-flight switch_locale cannot apply
+		// after this navigation started but before load_view takes the sequence.
+		const seq = ++this._view_seq;
 		const route = frappe.get_route();
 		this.ensure_locales().then(() => {
+			if (seq !== this._view_seq) {
+				return;
+			}
 			const parsed = this.parse_route(route);
 			if (!parsed.locale) {
 				return this.resolve_and_redirect(parsed.path);
 			}
 			this.current_locale = parsed.locale;
-			this.load_tree().then(() => {
-				this.update_locale_picker();
-				if (parsed.path === null) {
-					if (!this.tree_data.length) {
-						this.show_empty_state();
-						return;
-					}
-					return this.select_first_page();
-				}
-				this.load_page(parsed.path);
-			});
+			if (parsed.path === null) {
+				return this.load_view("", true);
+			}
+			this.load_view(parsed.path);
 		});
 	}
 
@@ -142,44 +147,37 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 	}
 
-	update_locale_picker() {
-		if (!this.locales.length) {
-			return Promise.resolve();
-		}
-
-		return frappe
-			.xcall("compendium.docs.get_page_variants", { path: this.current_path || "" })
-			.then((variants) => {
-				this.render_locale_picker(variants || []);
-			})
-			.catch(() => {
-				this.render_locale_picker(this.locales);
-			});
-	}
-
 	switch_locale(locale) {
 		if (!locale || locale === this.current_locale) {
 			return;
 		}
 
 		const path = this.current_path || "";
-		const route = ["docs", locale];
-		if (path) {
-			route.push(...path.split("/"));
-		}
+		const seq = ++this._view_seq;
+		frappe.xcall("compendium.docs.get_view", { path, locale }).then((view) => {
+			if (seq !== this._view_seq) {
+				if (this.$locale_select.val() === locale) {
+					this.$locale_select.val(this.current_locale);
+				}
+				return;
+			}
 
-		frappe
-			.xcall("compendium.docs.get_page", { path, locale })
-			.then(() => frappe.set_route(route))
-			.catch(() => {
-				frappe.xcall("compendium.docs.get_first_page", { locale }).then((first_path) => {
-					const fallback = ["docs", locale];
-					if (first_path) {
-						fallback.push(...first_path.split("/"));
-					}
-					frappe.set_route(fallback);
-				});
-			});
+			const target_path = view.page ? path : view.first_path;
+			const route = ["docs", locale];
+			if (target_path) {
+				route.push(...target_path.split("/"));
+			}
+
+			if (view.page || target_path == null || target_path === path) {
+				this.current_locale = locale;
+				this._ignore_next_show = true;
+				frappe.set_route(route);
+				this.apply_view(view);
+				return;
+			}
+
+			frappe.set_route(route);
+		});
 	}
 
 	parse_route(route) {
@@ -206,9 +204,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	resolve_and_redirect(path) {
+		const seq = this._view_seq;
 		return frappe
 			.xcall("compendium.docs.resolve_locale", { path: path || "" })
 			.then((result) => {
+				if (seq !== this._view_seq) {
+					return;
+				}
 				const route = ["docs", result.locale];
 				if (result.path) {
 					route.push(...result.path.split("/"));
@@ -217,19 +219,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			});
 	}
 
-	load_tree() {
-		return frappe
-			.xcall("compendium.docs.get_tree", { locale: this.current_locale })
-			.then((tree) => {
-				this.tree_data = tree || [];
-				this.page_paths = this.collect_page_paths(this.tree_data);
-				this.render_tree();
-			})
-			.catch(() => {
-				this.tree_data = [];
-				this.page_paths = new Set();
-				this.render_tree();
-			});
+	apply_tree(tree) {
+		this.tree_data = tree || [];
+		this.page_paths = this.collect_page_paths(this.tree_data);
 	}
 
 	collect_page_paths(nodes) {
@@ -331,22 +323,6 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 	}
 
-	select_first_page() {
-		return frappe
-			.xcall("compendium.docs.get_first_page", { locale: this.current_locale })
-			.then((path) => {
-				if (path === null || path === undefined) {
-					this.show_empty_state();
-					return;
-				}
-				if (path === "") {
-					this.load_page("");
-					return;
-				}
-				this.navigate_to(path, true);
-			});
-	}
-
 	navigate_to(path, replace_route = false) {
 		const route = ["docs", this.current_locale];
 		if (path) {
@@ -362,26 +338,58 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			frappe.set_route(route);
 			return;
 		}
-		this.load_page(path);
+		this.load_view(path);
 	}
 
-	load_page(path) {
-		this.current_path = path;
-		this.expand_ancestors(path);
-		this.render_tree();
+	load_view(path, resolve_first = false) {
 		this.show_loading();
 
+		const seq = ++this._view_seq;
 		return frappe.call({
-			method: "compendium.docs.get_page",
-			args: { path, locale: this.current_locale },
+			method: "compendium.docs.get_view",
+			args: {
+				path: path || "",
+				locale: this.current_locale,
+				resolve_first: resolve_first ? 1 : 0,
+			},
 			callback: (response) => {
-				if (response.exc_type) {
+				if (seq !== this._view_seq) {
+					return;
+				}
+				if (response.exc_type && response.message == null) {
 					this.show_error(response, path);
 					return;
 				}
-				this.show_page(response.message);
+				this.apply_view(response.message || {}, { resolve_first });
 			},
 		});
+	}
+
+	apply_view(view, { resolve_first = false } = {}) {
+		this.apply_tree(view.tree);
+		this.render_locale_picker(view.variants || []);
+
+		if (resolve_first && view.path != null && view.path !== "") {
+			this._ignore_next_show = true;
+			this.navigate_to(view.path, true);
+		}
+
+		if (!view.page) {
+			this.current_path = view.path;
+			this.expand_ancestors(view.path);
+			this.render_tree();
+			if (!view.exc_type) {
+				this.show_empty_state();
+			} else {
+				this.show_error({ exc_type: view.exc_type }, view.path);
+			}
+			return;
+		}
+
+		this.current_path = view.page.path;
+		this.expand_ancestors(this.current_path);
+		this.render_tree();
+		this.show_page(view.page, view.variants);
 	}
 
 	show_loading() {
@@ -391,7 +399,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$content.removeClass("has-toc");
 	}
 
-	show_page(doc) {
+	show_page(doc, variants) {
 		this.$reading.removeClass("docs-loading hide");
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
@@ -409,7 +417,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.scroll_to_heading();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
-		this.update_locale_picker();
+		this.render_locale_picker(variants || []);
 	}
 
 	render_heading_anchors() {
@@ -600,7 +608,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.removeClass("hide");
 		this.$state_message.text(__("No documentation is available for your account."));
 		this.update_breadcrumbs();
-		this.update_locale_picker();
+		this.render_locale_picker([]);
 	}
 
 	show_error(response, path) {
