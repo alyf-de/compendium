@@ -74,6 +74,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			}
 			this.navigate_to(path);
 		});
+
+		// Desk treats href="#…" as v1 routes (/app/%23…). Keep in-page anchors local.
+		this.$content.on("click", 'a[href^="#"]', (event) => {
+			this.follow_in_page_anchor(event);
+		});
 	}
 
 	show() {
@@ -400,6 +405,34 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.update_locale_picker();
 	}
 
+	follow_in_page_anchor(event) {
+		const href = event.currentTarget.getAttribute("href");
+		if (!href || href === "#") {
+			return;
+		}
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		let id;
+		try {
+			id = decodeURIComponent(href.slice(1));
+		} catch {
+			return;
+		}
+		if (!id) {
+			return;
+		}
+
+		// Do not set window.location.hash — Desk's hashchange handler treats it as a
+		// v1 route and pushState("installieren") resolves relative to the current path.
+		const url = `${window.location.pathname}${window.location.search}${href}`;
+		if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== url) {
+			history.replaceState(null, "", url);
+		}
+		this.scroll_to_id(id);
+	}
+
 	scroll_to_heading() {
 		const hash = window.location.hash.slice(1);
 		if (!hash) {
@@ -413,10 +446,16 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			return;
 		}
 
+		this.scroll_to_id(id);
+	}
+
+	scroll_to_id(id) {
 		const heading = document.getElementById(id);
-		if (heading && this.$reading.has(heading).length) {
-			heading.scrollIntoView();
+		if (!heading || !this.$reading.has(heading).length) {
+			return false;
 		}
+		heading.scrollIntoView();
+		return true;
 	}
 
 	render_fallback_notice(doc) {

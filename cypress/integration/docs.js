@@ -62,6 +62,11 @@ context("Documentation Browser", () => {
 		cy.get('.docs-toc-pane a[href="#role-defaults"]').should("exist");
 		cy.location("hash").should("eq", "#role-defaults");
 		cy.get(".docs-reading-pane h2#role-defaults").should("be.visible");
+
+		cy.get('.docs-toc-pane a[href="#mermaid-diagrams"]').click();
+		cy.location("pathname").should("eq", "/app/docs/en/compendium/docs/authoring");
+		cy.location("hash").should("eq", "#mermaid-diagrams");
+		cy.get(".docs-reading-pane h2#mermaid-diagrams").should("be.visible");
 	});
 
 	it("shows not-found state for missing pages", () => {
