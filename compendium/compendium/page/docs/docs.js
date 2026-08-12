@@ -24,6 +24,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.current_path = null;
 		this.current_locale = frappe.boot.lang || "en";
 		this.locales = [];
+		this._view_seq = 0;
 		this.setup_layout();
 	}
 
@@ -135,7 +136,15 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 
 		const path = this.current_path || "";
+		const seq = ++this._view_seq;
 		frappe.xcall("compendium.docs.get_view", { path, locale }).then((view) => {
+			if (seq !== this._view_seq) {
+				if (this.$locale_select.val() === locale) {
+					this.$locale_select.val(this.current_locale);
+				}
+				return;
+			}
+
 			const target_path = view.page ? path : view.first_path;
 			const route = ["docs", locale];
 			if (target_path) {
@@ -314,6 +323,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	load_view(path, resolve_first = false) {
 		this.show_loading();
 
+		const seq = ++this._view_seq;
 		return frappe.call({
 			method: "compendium.docs.get_view",
 			args: {
@@ -322,6 +332,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				resolve_first: resolve_first ? 1 : 0,
 			},
 			callback: (response) => {
+				if (seq !== this._view_seq) {
+					return;
+				}
 				if (response.exc_type && response.message == null) {
 					this.show_error(response, path);
 					return;
