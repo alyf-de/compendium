@@ -89,8 +89,14 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			return;
 		}
 
+		// Bump before ensure_locales so an in-flight switch_locale cannot apply
+		// after this navigation started but before load_view takes the sequence.
+		const seq = ++this._view_seq;
 		const route = frappe.get_route();
 		this.ensure_locales().then(() => {
+			if (seq !== this._view_seq) {
+				return;
+			}
 			const parsed = this.parse_route(route);
 			if (!parsed.locale) {
 				return this.resolve_and_redirect(parsed.path);
@@ -195,9 +201,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	resolve_and_redirect(path) {
+		const seq = this._view_seq;
 		return frappe
 			.xcall("compendium.docs.resolve_locale", { path: path || "" })
 			.then((result) => {
+				if (seq !== this._view_seq) {
+					return;
+				}
 				const route = ["docs", result.locale];
 				if (result.path) {
 					route.push(...result.path.split("/"));
