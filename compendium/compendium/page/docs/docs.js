@@ -397,9 +397,15 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$toc_pane.toggleClass("hide", !toc_html);
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.render_fallback_notice(doc);
-		this.scroll_to_heading();
 		this.render_roles(doc.roles);
-		this.render_mermaid();
+		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
+		// wait so fragment scroll lands on the final layout.
+		const path = doc.path;
+		this.render_mermaid().finally(() => {
+			if (this.current_path === path) {
+				this.scroll_to_heading();
+			}
+		});
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
@@ -489,7 +495,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	render_mermaid() {
 		const $blocks = this.$reading.find("pre code.language-mermaid, pre code.mermaid");
 		if (!$blocks.length) {
-			return;
+			return Promise.resolve();
 		}
 
 		const nodes = [];
@@ -499,11 +505,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			nodes.push($diagram.get(0));
 		});
 
-		frappe.require("mermaid.bundle.js").then(() => {
+		return frappe.require("mermaid.bundle.js").then(() =>
 			this.ensure_mermaid().then(() =>
 				compendium.mermaid.run({ nodes, suppressErrors: true })
-			);
-		});
+			)
+		);
 	}
 
 	highlight_code() {

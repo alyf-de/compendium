@@ -57,11 +57,19 @@ context("Documentation Browser", () => {
 
 	it("renders a TOC and follows heading deep links", () => {
 		cy.viewport(1280, 720);
-		cy.visit("/app/docs/en/compendium/docs/authoring#role-defaults");
+		// Heading after a Mermaid block: scroll must wait for SVG layout.
+		cy.visit("/app/docs/en/compendium/docs/authoring#code-blocks");
 		cy.get(".docs-toc-pane").should("be.visible");
-		cy.get('.docs-toc-pane a[href="#role-defaults"]').should("exist");
-		cy.location("hash").should("eq", "#role-defaults");
-		cy.get(".docs-reading-pane h2#role-defaults").should("be.visible");
+		cy.get('.docs-toc-pane a[href="#code-blocks"]').should("exist");
+		cy.location("hash").should("eq", "#code-blocks");
+		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
+		cy.get(".docs-reading-pane h2#code-blocks").should(($heading) => {
+			const heading_top = $heading[0].getBoundingClientRect().top;
+			const pane_top = document
+				.querySelector(".layout-main-section-wrapper")
+				.getBoundingClientRect().top;
+			expect(heading_top).to.be.closeTo(pane_top, 48);
+		});
 
 		cy.get('.docs-toc-pane a[href="#mermaid-diagrams"]').click();
 		cy.location("pathname").should("eq", "/app/docs/en/compendium/docs/authoring");
