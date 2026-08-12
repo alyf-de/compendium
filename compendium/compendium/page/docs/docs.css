@@ -354,7 +354,7 @@
 }
 
 @media (min-width: 1200px) {
-	.docs-browser {
+	.docs-browser.has-toc {
 		display: grid;
 		grid-template-columns: minmax(0, 75ch) minmax(12rem, 16rem);
 		align-items: start;
@@ -362,7 +362,7 @@
 		gap: var(--margin-xl);
 	}
 
-	.docs-reading-pane {
+	.docs-browser.has-toc .docs-reading-pane {
 		max-width: none;
 		margin-inline: 0;
 	}

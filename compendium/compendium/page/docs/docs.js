@@ -379,6 +379,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.$reading.removeClass("hide").addClass("docs-loading").html("");
 		this.$toc_pane.addClass("hide");
+		this.$content.removeClass("has-toc");
 	}
 
 	show_page(doc) {
@@ -386,8 +387,10 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
-		this.$toc.html(doc.toc_html || "");
-		this.$toc_pane.toggleClass("hide", !doc.toc_html);
+		const toc_html = doc.toc_html || "";
+		this.$toc.html(toc_html);
+		this.$toc_pane.toggleClass("hide", !toc_html);
+		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.scroll_to_heading();
 		this.render_roles(doc.roles);
 		this.render_mermaid();
