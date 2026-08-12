@@ -55,6 +55,28 @@ context("Documentation Browser", () => {
 		cy.get(".docs-page-roles").should("contain", "because you have");
 	});
 
+	it("renders a TOC and follows heading deep links", () => {
+		cy.viewport(1280, 720);
+		// Heading after a Mermaid block: scroll must wait for SVG layout.
+		cy.visit("/app/docs/en/compendium/docs/authoring#code-blocks");
+		cy.get(".docs-toc-pane").should("be.visible");
+		cy.get('.docs-toc-pane a[href="#code-blocks"]').should("exist");
+		cy.location("hash").should("eq", "#code-blocks");
+		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
+		cy.get(".docs-reading-pane h2#code-blocks").should(($heading) => {
+			const heading_top = $heading[0].getBoundingClientRect().top;
+			const pane_top = document
+				.querySelector(".layout-main-section-wrapper")
+				.getBoundingClientRect().top;
+			expect(heading_top).to.be.closeTo(pane_top, 48);
+		});
+
+		cy.get('.docs-toc-pane a[href="#mermaid-diagrams"]').click();
+		cy.location("pathname").should("eq", "/app/docs/en/compendium/docs/authoring");
+		cy.location("hash").should("eq", "#mermaid-diagrams");
+		cy.get(".docs-reading-pane h2#mermaid-diagrams").should("be.visible");
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/app/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");
