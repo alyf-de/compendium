@@ -1,8 +1,10 @@
 # Copyright (c) 2026, ALYF GmbH and Contributors
 # License: MIT. See LICENSE
 
+import importlib.util
 import os
 import re
+from collections import Counter
 from urllib.parse import urlencode
 
 import frappe
@@ -36,6 +38,9 @@ def get_page(path: str = "", locale: str | None = None):
 		"path": page.path,
 		"title": page.title,
 		"locale": locale,
+		"language": page.language,
+		"language_label": get_locale_label(page.language),
+		"is_fallback": is_language_fallback(page.language, locale),
 		"content": content,
 		"toc_html": render_toc(page.body),
 		"roles": [_(role) for role in matching_roles],
@@ -61,16 +66,41 @@ def get_first_page(locale: str | None = None):
 def resolve_locale(path: str = ""):
 	"""Resolve a stable locale and path for a language-neutral docs route."""
 	path = normalize_path(path)
-	user_lang = normalize_locale(frappe.local.lang or DEFAULT_LANG)
 	raw_pages = discover_raw_pages()
+	locale = get_view_locale(raw_pages)
 
 	if path:
-		return {"locale": get_preferred_locale_for_path(raw_pages, path, user_lang), "path": path}
+		return {"locale": locale, "path": path}
 
-	locale = user_lang if locale_has_distinct_content(raw_pages, user_lang) else DEFAULT_LANG
-	pages = discover_pages(locale)
+	pages = compose_pages(raw_pages, locale)
 	first_path = get_first_page_path(pages)
 	return {"locale": locale, "path": first_path if first_path is not None else ""}
+
+
+def get_view_locale(raw_pages):
+	"""The locale a reader browses in: their own language, or the closest documented one.
+
+	Composition falls back per page, so this only decides which locale the route carries.
+	It has to be a documented one — the client recognises a route segment as a locale by
+	matching it against `get_locales()`, and an unknown segment would be read as a path.
+	"""
+	locale = normalize_locale(frappe.local.lang or DEFAULT_LANG)
+	documented = {language for language, _path in raw_pages}
+	if not documented or locale in documented:
+		return locale
+
+	for language in get_language_chain(locale):
+		if language in documented:
+			return language
+
+	# Nothing in the reader's chain is documented: use the doc set's main language.
+	counts = Counter(language for language, _path in raw_pages)
+	return min(documented, key=lambda language: (-counts[language], language))
+
+
+def is_language_fallback(language, locale):
+	"""True when a page is shown in a language the reader did not ask for."""
+	return language != locale and language != get_parent_language(locale)
 
 
 @frappe.whitelist()
@@ -81,21 +111,23 @@ def get_locales():
 
 @frappe.whitelist()
 def get_page_variants(path: str = ""):
-	"""Return locales that have an accessible variant of the given page."""
+	"""Return the locales this page can be viewed in, and the language each one renders."""
 	path = normalize_path(path)
+	raw_pages = discover_raw_pages()
 	variants = []
 
-	for locale_info in get_documented_locale_infos():
+	for locale_info in get_documented_locale_infos(raw_pages):
 		locale = locale_info["locale"]
-		if not page_has_variant_for_locale(path, locale):
+		page = compose_pages(raw_pages, locale).get(path)
+		if not page or not is_permitted(page):
 			continue
 
-		page = get_page_record(path, locale=locale, check_permission=True)
 		variants.append(
 			{
 				"locale": locale,
 				"label": locale_info["label"],
 				"title": page.title,
+				"language": page.language,
 			}
 		)
 
@@ -126,40 +158,13 @@ def get_documented_locale_infos(raw_pages=None):
 @frappe.request_cache
 def get_language_labels():
 	return {
-		name: language_name or name
-		for name, language_name in frappe.db.sql(
-			"select name, language_name from `tabLanguage`",
-			as_list=True,
-		)
+		row.name: row.language_name or row.name
+		for row in frappe.get_all("Language", fields=["name", "language_name"])
 	}
 
 
 def get_locale_label(locale):
 	return get_language_labels().get(locale, locale)
-
-
-def page_exists_for_locale(path, locale, check_permission=True):
-	try:
-		get_page_record(path, locale=locale, check_permission=check_permission)
-		return True
-	except (frappe.DoesNotExistError, frappe.PermissionError):
-		return False
-
-
-def page_has_variant_for_locale(path, locale, raw_pages=None):
-	raw_pages = raw_pages or discover_raw_pages()
-	by_lang = group_pages_by_language(raw_pages)
-	locale = normalize_locale(locale)
-
-	if path in by_lang.get(DEFAULT_LANG, {}):
-		if locale == DEFAULT_LANG:
-			return True
-
-		english_page = by_lang[DEFAULT_LANG][path]
-		localized = select_localized_page(raw_pages, path, english_page.app_index, locale)
-		return bool(localized and localized.language != DEFAULT_LANG)
-
-	return path in by_lang.get(locale, {})
 
 
 def discover_pages(locale=None):
@@ -206,34 +211,104 @@ def discover_raw_pages():
 
 
 def compose_pages(raw_pages, locale):
-	"""Compose the final page map for the requested locale."""
-	by_lang = group_pages_by_language(raw_pages)
-	english_pages = by_lang.get(DEFAULT_LANG, {})
+	"""Compose the final page map for the requested locale.
+
+	Every documented path is composed for every locale. The body comes from the best
+	language available for that path, the metadata (order, roles) from the path's
+	canonical page — so a page that exists in one language only stays reachable and
+	keeps its place in the tree for every reader.
+	"""
+	canonical_languages = get_canonical_languages(raw_pages)
 	composed = {}
 
-	for path, page in english_pages.items():
-		composed[path] = page
+	for path, variants in group_variants_by_path(raw_pages).items():
+		canonical = pick_canonical_page(variants, canonical_languages)
+		page = select_page_for_locale(variants, locale, canonical)
+		composed[path] = page if page is canonical else merge_translated_page(canonical, page)
 
-	for path, english_page in english_pages.items():
-		localized = select_localized_page(raw_pages, path, english_page.app_index, locale)
-		if localized and localized.language != DEFAULT_LANG:
-			composed[path] = merge_translated_page(english_page, localized)
-
-	localized_only = {}
-	for lang in get_language_chain(locale)[:-1]:
-		for path, page in by_lang.get(lang, {}).items():
-			if path not in english_pages and path not in localized_only:
-				localized_only[path] = page
-
-	composed.update(localized_only)
 	return composed
 
 
-def group_pages_by_language(raw_pages):
-	by_lang = {}
+def group_variants_by_path(raw_pages):
+	"""Regroup discovery output into {logical path: {language: page}}."""
+	variants_by_path = {}
 	for (language, path), page in raw_pages.items():
-		by_lang.setdefault(language, {})[path] = page
-	return by_lang
+		variants_by_path.setdefault(path, {})[language] = page
+	return variants_by_path
+
+
+def select_page_for_locale(variants, locale, canonical):
+	"""First variant along the locale's language chain, else the canonical page.
+
+	A variant that is not the canonical page is a translation of it, and only counts
+	when it ships with the app owning the canonical page or a later one — otherwise a
+	stale translation would override newer canonical content.
+	"""
+	for language in get_language_chain(locale):
+		page = variants.get(language)
+		if page and (page is canonical or page.app_index >= canonical.app_index):
+			return page
+
+	return canonical
+
+
+def pick_canonical_page(variants, canonical_languages):
+	"""The variant that owns a path's metadata.
+
+	English wherever English exists, so apps that document in English are unaffected.
+	For a path with no English variant it is the owning app's page in that app's
+	canonical language — never another app's, or the owning app's content would be
+	served under a foreign app's roles.
+	"""
+	english_page = variants.get(DEFAULT_LANG)
+	if english_page:
+		return english_page
+
+	owner = max(variants.values(), key=lambda page: page.app_index)
+	language = canonical_languages.get(owner.app, owner.language)
+	canonical = variants.get(language)
+	return canonical if canonical and canonical.app == owner.app else owner
+
+
+def get_canonical_languages(raw_pages):
+	"""Canonical language per app: the one its docs are authored in.
+
+	English when the app ships any, otherwise the app's only language — so a single
+	language app needs no configuration. An app documenting in several languages with
+	no English can declare `docs_canonical_language` in hooks.py; without it the
+	language carrying the most pages wins.
+	"""
+	page_counts = {}
+	for (language, _path), page in raw_pages.items():
+		page_counts.setdefault(page.app, Counter())[language] += 1
+
+	canonical_languages = {}
+	for app, languages in page_counts.items():
+		if DEFAULT_LANG in languages:
+			canonical_languages[app] = DEFAULT_LANG
+		elif len(languages) == 1:
+			canonical_languages[app] = next(iter(languages))
+		else:
+			declared = get_declared_canonical_language(app)
+			canonical_languages[app] = (
+				declared
+				if declared in languages
+				else min(languages, key=lambda language: (-languages[language], language))
+			)
+
+	return canonical_languages
+
+
+def get_declared_canonical_language(app):
+	try:
+		# frappe.get_hooks() prints and raises for an app it cannot import
+		if not importlib.util.find_spec(f"{app}.hooks"):
+			return None
+	except (ImportError, ValueError):
+		return None
+
+	declared = frappe.get_hooks("docs_canonical_language", app_name=app)
+	return declared[-1] if declared else None
 
 
 def get_language_chain(locale):
@@ -245,92 +320,6 @@ def get_language_chain(locale):
 	if DEFAULT_LANG not in chain:
 		chain.append(DEFAULT_LANG)
 	return chain
-
-
-def select_localized_page(raw_pages, path, min_app_index, locale):
-	for lang in get_language_chain(locale):
-		if lang == DEFAULT_LANG:
-			continue
-
-		page = raw_pages.get((lang, path))
-		if page and page.app_index >= min_app_index:
-			return page
-
-	return None
-
-
-def get_preferred_locale_for_path(raw_pages, path, user_lang):
-	if has_localized_variant(raw_pages, user_lang, path):
-		return user_lang
-
-	by_lang = group_pages_by_language(raw_pages)
-	if path in by_lang.get(DEFAULT_LANG, {}):
-		return DEFAULT_LANG
-
-	localized_only_locale = get_localized_only_locale(raw_pages, path, user_lang)
-	if localized_only_locale:
-		return localized_only_locale
-
-	return DEFAULT_LANG
-
-
-def get_localized_only_locale(raw_pages, path, user_lang):
-	by_lang = group_pages_by_language(raw_pages)
-	if path in by_lang.get(DEFAULT_LANG, {}):
-		return None
-
-	for lang in get_language_chain(user_lang):
-		if lang != DEFAULT_LANG and path in by_lang.get(lang, {}):
-			return lang
-
-	for lang in sorted(by_lang):
-		if lang != DEFAULT_LANG and path in by_lang.get(lang, {}):
-			return lang
-
-	return None
-
-
-def has_localized_variant(raw_pages, locale, path):
-	by_lang = group_pages_by_language(raw_pages)
-	english_pages = by_lang.get(DEFAULT_LANG, {})
-
-	if path in english_pages:
-		if locale == DEFAULT_LANG:
-			return True
-
-		localized = select_localized_page(raw_pages, path, english_pages[path].app_index, locale)
-		return bool(localized and localized.language != DEFAULT_LANG)
-
-	for lang in get_language_chain(locale):
-		if lang == DEFAULT_LANG:
-			continue
-		if path in by_lang.get(lang, {}):
-			return True
-
-	return False
-
-
-def locale_has_distinct_content(raw_pages, locale):
-	if locale == DEFAULT_LANG:
-		return bool(group_pages_by_language(raw_pages).get(DEFAULT_LANG))
-
-	by_lang = group_pages_by_language(raw_pages)
-	english_pages = by_lang.get(DEFAULT_LANG, {})
-
-	for lang in get_language_chain(locale):
-		if lang == DEFAULT_LANG:
-			continue
-
-		for path, _page in by_lang.get(lang, {}).items():
-			if path not in english_pages:
-				return True
-
-			english_page = english_pages[path]
-			localized = select_localized_page(raw_pages, path, english_page.app_index, locale)
-			if localized and localized.language != DEFAULT_LANG:
-				return True
-
-	return False
 
 
 def get_first_page_path(pages):
@@ -465,9 +454,7 @@ def normalize_path(path):
 
 def get_page_record(path, locale=None, check_permission=False):
 	locale = normalize_locale(locale or DEFAULT_LANG)
-	raw_pages = discover_raw_pages()
-	pages = compose_pages(raw_pages, locale)
-	page = pages.get(path) or get_localized_only_page(raw_pages, path, locale)
+	page = compose_pages(discover_raw_pages(), locale).get(path)
 
 	if not page:
 		frappe.throw(_("Documentation page not found"), frappe.DoesNotExistError)
@@ -476,28 +463,6 @@ def get_page_record(path, locale=None, check_permission=False):
 		raise frappe.PermissionError(_("No read permission for documentation page {0}").format(page.title))
 
 	return page
-
-
-def get_localized_only_page(raw_pages, path, locale):
-	by_lang = group_pages_by_language(raw_pages)
-	if path in by_lang.get(DEFAULT_LANG, {}):
-		return None
-
-	for lang in get_language_chain(locale):
-		if lang == DEFAULT_LANG:
-			continue
-		page = by_lang.get(lang, {}).get(path)
-		if page:
-			return page
-
-	for lang in sorted(by_lang):
-		if lang == DEFAULT_LANG:
-			continue
-		page = by_lang.get(lang, {}).get(path)
-		if page:
-			return page
-
-	return None
 
 
 def get_user_roles():

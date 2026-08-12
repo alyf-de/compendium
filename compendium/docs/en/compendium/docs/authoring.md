@@ -36,21 +36,32 @@ Put documentation under a language directory inside `docs/`:
 The first directory must be a Frappe **Language** code. It is stripped from the
 logical path. Routes include the locale: `/app/docs/de/guides/setup`.
 
-When you open a language-neutral route, Compendium redirects to your language only
-when a localized variant exists. Otherwise it uses English. Use the language
-selector in the sidebar to switch between available variants for the current
-page.
+The locale in the route is the language you are **reading in**, not the language a
+given file happens to be written in. Open a language-neutral route and Compendium
+redirects to your own language. Use the language selector in the sidebar to switch.
 
-For an explicit locale in the URL, Compendium tries the exact language, then the
-parent language (`de-CH` → `de`), then English.
+Every documented page appears for every reader. To fill one, Compendium tries the
+exact language, then the parent language (`de-CH` → `de`), then English, then the
+page's canonical language. A page shown in a language you did not ask for is
+marked as such in the reading pane.
 
-When an English page exists, a localized file replaces its `title`, body, and
-relative assets. It inherits `order` and `roles` from the English page.
+A localized file replaces the canonical page's `title`, body, and relative assets,
+and inherits its `order` and `roles` — so ordering and permissions are declared
+once and cannot drift between translations.
 
-Localized-only pages have no English equivalent. They appear in navigation only
-for the exact or parent language and use their own `title`, `order`, `roles`,
-body, and assets. A shared link still opens the page for users in other
-languages.
+## Canonical language
+
+The canonical page of a path owns its `order` and `roles`. It is the English page
+wherever one exists, so apps documenting in English need to do nothing.
+
+An app that ships no English docs at all is fully supported: its canonical
+language is the one language it documents in, and its pages appear for readers of
+every language. If such an app documents in several languages, the one carrying
+the most pages wins; declare it explicitly in `hooks.py` to be sure:
+
+```python
+docs_canonical_language = "de"
+```
 
 ## Multi-app composition
 
@@ -58,7 +69,7 @@ Later installed apps replace the page body and metadata at an identical logical
 path. Child paths continue to merge independently.
 
 For translations, a localized variant applies only when it comes from the app
-that owns the English page or a later installed app.
+that owns the canonical page or a later installed app.
 
 ## Images and assets
 

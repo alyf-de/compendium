@@ -391,6 +391,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$toc.html(toc_html);
 		this.$toc_pane.toggleClass("hide", !toc_html);
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
+		this.render_fallback_notice(doc);
 		this.scroll_to_heading();
 		this.render_roles(doc.roles);
 		this.render_mermaid();
@@ -416,6 +417,19 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		if (heading && this.$reading.has(heading).length) {
 			heading.scrollIntoView();
 		}
+	}
+
+	render_fallback_notice(doc) {
+		if (!doc.is_fallback) {
+			return;
+		}
+
+		const label = frappe.utils.escape_html(doc.language_label || doc.language);
+		$(
+			`<div class="docs-fallback-notice">${__("This page is only available in {0}.", [
+				label,
+			])}</div>`
+		).prependTo(this.$reading);
 	}
 
 	render_roles(roles) {
