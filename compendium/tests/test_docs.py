@@ -27,6 +27,9 @@ from compendium.docs import (
 class TestDocs(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# discover_raw_pages is request-cached; clear so patched apps/paths take effect
+		if hasattr(frappe.local, "request_cache"):
+			frappe.local.request_cache.clear()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -518,6 +521,23 @@ class TestDocs(FrappeTestCase):
 			self.assertEqual([variant["locale"] for variant in localized_only], ["de", "en"])
 			self.assertEqual({variant["language"] for variant in localized_only}, {"de"})
 
+	def test_discover_raw_pages_is_request_cached(self):
+		from compendium.docs import build_page_record, discover_raw_pages
+
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# English",
+				"de/guide.md": "---\ntitle: Leitfaden\n---\n# Deutsch",
+			}
+		):
+			with patch("compendium.docs.build_page_record", wraps=build_page_record) as mocked:
+				get_tree("en")
+				get_page("guide", locale="en")
+				get_page_variants("guide")
+				# two markdown files; without request cache each consumer would re-walk them
+				self.assertEqual(mocked.call_count, 2)
+				self.assertIs(discover_raw_pages(), discover_raw_pages())
+
 	def docs_environment(self, files):
 		return DocsTestEnvironment(files)
 
@@ -549,6 +569,8 @@ class DocsTestEnvironment:
 		]
 		for patcher in self._patches:
 			patcher.start()
+		if hasattr(frappe.local, "request_cache"):
+			frappe.local.request_cache.clear()
 		return self.docs_root
 
 	def __exit__(self, exc_type, exc, tb):
