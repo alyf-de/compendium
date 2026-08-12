@@ -158,11 +158,8 @@ def get_documented_locale_infos(raw_pages=None):
 @frappe.request_cache
 def get_language_labels():
 	return {
-		name: language_name or name
-		for name, language_name in frappe.db.sql(
-			"select name, language_name from `tabLanguage`",
-			as_list=True,
-		)
+		row.name: row.language_name or row.name
+		for row in frappe.get_all("Language", fields=["name", "language_name"])
 	}
 
 
