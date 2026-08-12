@@ -383,11 +383,25 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
 		this.$reading.html(doc.content || "");
+		this.render_fallback_notice(doc);
 		this.render_roles(doc.roles);
 		this.render_mermaid();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
+	}
+
+	render_fallback_notice(doc) {
+		if (!doc.is_fallback) {
+			return;
+		}
+
+		const label = frappe.utils.escape_html(doc.language_label || doc.language);
+		$(
+			`<div class="docs-fallback-notice">${__("This page is only available in {0}.", [
+				label,
+			])}</div>`
+		).prependTo(this.$reading);
 	}
 
 	render_roles(roles) {
