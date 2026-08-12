@@ -15,6 +15,7 @@ from compendium.docs import (
 	get_page_record,
 	get_page_variants,
 	get_tree,
+	get_view,
 	merge_translated_page,
 	normalize_path,
 	parse_roles,
@@ -531,12 +532,47 @@ class TestDocs(FrappeTestCase):
 			}
 		):
 			with patch("compendium.docs.build_page_record", wraps=build_page_record) as mocked:
-				get_tree("en")
-				get_page("guide", locale="en")
-				get_page_variants("guide")
+				get_view("guide", locale="en")
 				# two markdown files; without request cache each consumer would re-walk them
 				self.assertEqual(mocked.call_count, 2)
 				self.assertIs(discover_raw_pages(), discover_raw_pages())
+
+	def test_get_view_returns_tree_page_and_variants(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# English",
+				"de/guide.md": "---\ntitle: Leitfaden\n---\n# Deutsch",
+			}
+		):
+			view = get_view("guide", locale="en")
+			self.assertEqual(view["page"]["title"], "Guide")
+			self.assertIn("English", view["page"]["content"])
+			self.assertEqual([node["path"] for node in view["tree"]], ["guide"])
+			self.assertEqual([variant["locale"] for variant in view["variants"]], ["de", "en"])
+			self.assertIsNone(view["exc_type"])
+
+	def test_get_view_keeps_tree_when_page_is_missing(self):
+		with self.docs_environment(
+			{
+				"en/guide.md": "---\ntitle: Guide\n---\n# English",
+			}
+		):
+			view = get_view("missing", locale="en")
+			self.assertIsNone(view["page"])
+			self.assertEqual(view["exc_type"], "DoesNotExistError")
+			self.assertEqual([node["path"] for node in view["tree"]], ["guide"])
+			self.assertEqual(view["first_path"], "guide")
+
+	def test_get_view_resolve_first_selects_opening_page(self):
+		with self.docs_environment(
+			{
+				"en/b.md": "---\ntitle: B\norder: 2\n---\n# B",
+				"en/a.md": "---\ntitle: A\norder: 1\n---\n# A",
+			}
+		):
+			view = get_view(locale="en", resolve_first=True)
+			self.assertEqual(view["path"], "a")
+			self.assertEqual(view["page"]["title"], "A")
 
 	def docs_environment(self, files):
 		return DocsTestEnvironment(files)
