@@ -24,6 +24,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.current_path = null;
 		this.current_locale = frappe.boot.lang || "en";
 		this.locales = [];
+		this.layout_ready = Promise.resolve();
 		this.setup_layout();
 	}
 
@@ -399,13 +400,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.render_fallback_notice(doc);
 		this.render_roles(doc.roles);
 		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
-		// wait so fragment scroll lands on the final layout.
-		const path = doc.path;
-		this.render_mermaid().finally(() => {
-			if (this.current_path === path) {
-				this.scroll_to_heading();
-			}
-		});
+		// fragment scrolls wait on layout_ready so they use the final layout.
+		this.layout_ready = this.render_mermaid();
+		this.scroll_to_heading();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
@@ -438,23 +435,33 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		) {
 			history.replaceState(null, "", url);
 		}
-		this.scroll_to_id(id);
+		this.scroll_to_heading();
 	}
 
 	scroll_to_heading() {
-		const hash = window.location.hash.slice(1);
-		if (!hash) {
+		if (!window.location.hash.slice(1)) {
 			return;
 		}
 
-		let id;
-		try {
-			id = decodeURIComponent(hash);
-		} catch {
-			return;
-		}
+		const path = this.current_path;
+		this.layout_ready.finally(() => {
+			if (this.current_path !== path) {
+				return;
+			}
 
-		this.scroll_to_id(id);
+			const hash = window.location.hash.slice(1);
+			if (!hash) {
+				return;
+			}
+
+			let id;
+			try {
+				id = decodeURIComponent(hash);
+			} catch {
+				return;
+			}
+			this.scroll_to_id(id);
+		});
 	}
 
 	scroll_to_id(id) {
