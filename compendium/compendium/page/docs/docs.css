@@ -252,6 +252,37 @@
 	text-wrap: balance;
 }
 
+.docs-heading-anchor {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0.35em;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--text-muted);
+	--icon-stroke: currentColor;
+	opacity: 0.45;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.docs-heading-anchor:hover,
+.docs-heading-anchor:focus-visible {
+	opacity: 1;
+	color: var(--text-muted);
+	outline: none;
+}
+
+.docs-reading-pane h1:hover .docs-heading-anchor,
+.docs-reading-pane h2:hover .docs-heading-anchor,
+.docs-reading-pane h3:hover .docs-heading-anchor,
+.docs-reading-pane h4:hover .docs-heading-anchor,
+.docs-reading-pane h5:hover .docs-heading-anchor,
+.docs-reading-pane h6:hover .docs-heading-anchor {
+	opacity: 0.85;
+}
+
 .docs-reading-pane h1 {
 	font-size: 1.75rem;
 	line-height: 1.25;

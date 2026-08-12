@@ -77,6 +77,15 @@ context("Documentation Browser", () => {
 		cy.get(".docs-reading-pane h2#mermaid-diagrams").should("be.visible");
 	});
 
+	it("copies a heading deep link from the muted link icon", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.window().then((win) => {
+			cy.stub(win.navigator.clipboard, "writeText").as("clipboardWrite").resolves();
+		});
+		cy.get(".docs-reading-pane h2#code-blocks .docs-heading-anchor").should("exist").click();
+		cy.get("@clipboardWrite").should("have.been.calledWithMatch", /#code-blocks$/);
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/app/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");

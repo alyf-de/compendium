@@ -80,6 +80,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$content.on("click", 'a[href^="#"]', (event) => {
 			this.follow_in_page_anchor(event);
 		});
+		this.$reading.on("click", ".docs-heading-anchor", (event) => {
+			this.copy_heading_fragment(event);
+		});
 	}
 
 	show() {
@@ -397,6 +400,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$toc.html(toc_html);
 		this.$toc_pane.toggleClass("hide", !toc_html);
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
+		this.render_heading_anchors();
 		this.render_fallback_notice(doc);
 		this.render_roles(doc.roles);
 		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
@@ -406,6 +410,41 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
 		this.update_locale_picker();
+	}
+
+	render_heading_anchors() {
+		this.$reading.find("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]").each((_, heading) => {
+			const id = heading.getAttribute("id");
+			if (!id || heading.querySelector(".docs-heading-anchor")) {
+				return;
+			}
+			const label = __("Copy link");
+			$(heading).append(
+				`<button type="button" class="docs-heading-anchor" data-heading-id="${frappe.utils.escape_html(
+					id
+				)}" aria-label="${frappe.utils.escape_html(
+					label
+				)}" title="${frappe.utils.escape_html(label)}">${frappe.utils.icon(
+					"link-url",
+					"xs"
+				)}</button>`
+			);
+		});
+	}
+
+	copy_heading_fragment(event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const id = event.currentTarget.getAttribute("data-heading-id");
+		if (!id) {
+			return;
+		}
+
+		// Same fragment form as TOC hrefs (#slug); full URL so the link is shareable.
+		const fragment = `#${encodeURIComponent(id)}`;
+		const url = `${window.location.origin}${window.location.pathname}${window.location.search}${fragment}`;
+		frappe.utils.copy_to_clipboard(url);
 	}
 
 	follow_in_page_anchor(event) {
