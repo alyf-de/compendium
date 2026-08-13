@@ -5,9 +5,6 @@ roles:
   - System Manager
 ---
 
-
-# In-app documentation
-
 Compendium lets Frappe apps ship user documentation as Markdown files under a `docs/` folder in the app package.
 
 ## How it works

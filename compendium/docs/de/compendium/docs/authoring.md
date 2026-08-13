@@ -3,9 +3,6 @@ title: Leitfaden zum Verfassen
 translated_from_rev: 267abc7
 ---
 
-# Leitfaden zum Verfassen
-
-
 ## Frontmatter
 
 Es werden nur drei Frontmatter-Schlüssel unterstützt:
@@ -123,8 +120,6 @@ roles:
   - Desk User
   - System Manager
 ---
-
-# Erste Schritte
 
 Hier steht Ihr Dokumentationsinhalt.
 ```

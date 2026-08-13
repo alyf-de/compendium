@@ -5,9 +5,6 @@ roles:
   - System Manager
 ---
 
-# Getting started
-
-
 Open **Compendium** from the Desk Help menu or navigate to `/app/docs`.
 
 Each page is discovered at runtime from installed apps. Restrict a page to specific roles with frontmatter:

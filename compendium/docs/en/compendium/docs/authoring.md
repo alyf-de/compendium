@@ -5,9 +5,6 @@ roles:
   - System Manager
 ---
 
-# Authoring Guide
-
-
 ## Frontmatter
 
 Only three frontmatter keys are supported:
@@ -119,8 +116,6 @@ roles:
   - Desk User
   - System Manager
 ---
-
-# Getting Started
 
 Your documentation content here.
 ```
