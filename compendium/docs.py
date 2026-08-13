@@ -598,23 +598,29 @@ def get_app_repository_url(app):
 def get_app_git_branch(app):
 	"""Git branch to use in GitHub links for this app.
 
-	Prefers a ref that exists on origin so local-only or other-remote branches do
-	not produce 404s. Order: local branch if on origin → origin upstream →
-	origin default. Returns empty if none of those are available.
+	Uses a ref from the git remote that matches `[project.urls].Repository`, so
+	forks and local-only branches do not produce 404s. Order: current branch if
+	on that remote → its upstream if on that remote → that remote's default.
+	Returns empty if none of those are available.
 	"""
 	repo_root = os.path.dirname(get_app_path(app))
+	remote = _remote_for_repository(repo_root, get_app_repository_url(app))
+	if not remote:
+		return ""
+
 	local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
-	if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/origin/{local}"):
+	if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/{remote}/{local}"):
 		return local
 
 	upstream = _git_output(repo_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
-	remote, _, branch = upstream.partition("/")
-	if remote == "origin" and branch:
+	tracking_remote, _, branch = upstream.partition("/")
+	if tracking_remote == remote and branch:
 		return branch
 
-	default = _git_output(repo_root, "symbolic-ref", "--short", "refs/remotes/origin/HEAD")
-	if default and "/" in default:
-		return default.split("/", 1)[1]
+	prefix = f"{remote}/"
+	default = _git_output(repo_root, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
+	if default.startswith(prefix):
+		return default[len(prefix) :]
 
 	return ""
 
@@ -648,6 +654,30 @@ def _git_ref_exists(repo_root, ref):
 		return False
 
 	return True
+
+
+def _remote_for_repository(repo_root, repository):
+	"""Git remote whose URL points at the same GitHub owner/repo as `repository`."""
+	target = _github_repo(repository)
+	if not target:
+		return ""
+
+	for remote in _git_output(repo_root, "remote").split():
+		if _github_repo(_git_output(repo_root, "remote", "get-url", remote)) == target:
+			return remote
+	return ""
+
+
+def _github_repo(url):
+	if not url:
+		return None
+	try:
+		owner, repo = parse_github_url(url)
+	except ValueError:
+		return None
+	if not owner or not repo:
+		return None
+	return (owner.lower(), repo.lower())
 
 
 def get_repo_relative_path(page):

@@ -616,75 +616,93 @@ class TestDocs(FrappeTestCase):
 			"https://github.com/alyf-de/example/edit/feat%2Fedit-on-github/frappe/docs/en/guide.md",
 		)
 
-	def test_git_branch_falls_back_to_origin_default(self):
-		from compendium.docs import get_app_git_branch
+	def test_git_branch_uses_local_when_on_canonical_remote(self):
+		self.assert_git_branch(
+			"feat/on-origin",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "git@github.com:alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/on-origin",
+			},
+			ref_exists=True,
+		)
 
-		with tempfile.TemporaryDirectory() as tmp:
-			app_root = os.path.join(tmp, "pkg")
-			os.makedirs(app_root)
+	def test_git_branch_falls_back_to_canonical_default(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/local-only",
+				("symbolic-ref", "--short", "refs/remotes/origin/HEAD"): "origin/version-15",
+			},
+		)
 
-			def git_output(repo_root, *args):
-				key = args
-				if key == ("rev-parse", "--abbrev-ref", "HEAD"):
-					return "feat/local-only"
-				if key == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
-					return ""
-				if key == ("symbolic-ref", "--short", "refs/remotes/origin/HEAD"):
-					return "origin/version-15"
-				return ""
+	def test_git_branch_uses_canonical_upstream(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/local-only",
+				("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"): "origin/version-15",
+			},
+		)
 
-			with (
-				patch("compendium.docs.get_app_path", return_value=app_root),
-				patch("compendium.docs._git_output", side_effect=git_output),
-				patch("compendium.docs._git_ref_exists", return_value=False),
-			):
-				self.assertEqual(get_app_git_branch("pkg"), "version-15")
+	def test_git_branch_skips_non_canonical_upstream(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/local-only",
+				("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"): "fork/feat/local-only",
+				("symbolic-ref", "--short", "refs/remotes/origin/HEAD"): "origin/version-15",
+			},
+		)
 
-	def test_git_branch_uses_origin_upstream(self):
-		from compendium.docs import get_app_git_branch
+	def test_git_branch_skips_origin_when_it_is_a_fork(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin\nupstream",
+				("remote", "get-url", "origin"): "https://github.com/jane/example.git",
+				("remote", "get-url", "upstream"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/on-fork",
+				("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"): "origin/feat/on-fork",
+				("symbolic-ref", "--short", "refs/remotes/upstream/HEAD"): "upstream/version-15",
+			},
+		)
 
-		with tempfile.TemporaryDirectory() as tmp:
-			app_root = os.path.join(tmp, "pkg")
-			os.makedirs(app_root)
-
-			def git_output(repo_root, *args):
-				if args == ("rev-parse", "--abbrev-ref", "HEAD"):
-					return "feat/local-only"
-				if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
-					return "origin/version-15"
-				return ""
-
-			with (
-				patch("compendium.docs.get_app_path", return_value=app_root),
-				patch("compendium.docs._git_output", side_effect=git_output),
-				patch("compendium.docs._git_ref_exists", return_value=False),
-			):
-				self.assertEqual(get_app_git_branch("pkg"), "version-15")
-
-	def test_git_branch_skips_non_origin_upstream(self):
-		from compendium.docs import get_app_git_branch
-
-		with tempfile.TemporaryDirectory() as tmp:
-			app_root = os.path.join(tmp, "pkg")
-			os.makedirs(app_root)
-
-			def git_output(repo_root, *args):
-				if args == ("rev-parse", "--abbrev-ref", "HEAD"):
-					return "feat/local-only"
-				if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
-					return "fork/feat/local-only"
-				if args == ("symbolic-ref", "--short", "refs/remotes/origin/HEAD"):
-					return "origin/version-15"
-				return ""
-
-			with (
-				patch("compendium.docs.get_app_path", return_value=app_root),
-				patch("compendium.docs._git_output", side_effect=git_output),
-				patch("compendium.docs._git_ref_exists", return_value=False),
-			):
-				self.assertEqual(get_app_git_branch("pkg"), "version-15")
+	def test_git_branch_hidden_when_no_canonical_remote(self):
+		self.assert_git_branch(
+			"",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/jane/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/on-fork",
+			},
+			ref_exists=True,
+		)
 
 	def test_git_branch_skips_unverified_local_branch(self):
+		self.assert_git_branch(
+			"",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/local-only",
+			},
+		)
+
+	def assert_git_branch(
+		self,
+		expected,
+		commands,
+		*,
+		ref_exists=False,
+		repository="https://github.com/alyf-de/example.git",
+	):
 		from compendium.docs import get_app_git_branch
 
 		with tempfile.TemporaryDirectory() as tmp:
@@ -692,16 +710,15 @@ class TestDocs(FrappeTestCase):
 			os.makedirs(app_root)
 
 			def git_output(repo_root, *args):
-				if args == ("rev-parse", "--abbrev-ref", "HEAD"):
-					return "feat/local-only"
-				return ""
+				return commands.get(args, "")
 
 			with (
 				patch("compendium.docs.get_app_path", return_value=app_root),
+				patch("compendium.docs.get_app_repository_url", return_value=repository),
 				patch("compendium.docs._git_output", side_effect=git_output),
-				patch("compendium.docs._git_ref_exists", return_value=False),
+				patch("compendium.docs._git_ref_exists", return_value=ref_exists),
 			):
-				self.assertEqual(get_app_git_branch("pkg"), "")
+				self.assertEqual(get_app_git_branch("pkg"), expected)
 
 	def test_edit_url_hidden_without_contributor_role(self):
 		with self.docs_environment(
