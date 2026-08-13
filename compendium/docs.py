@@ -599,7 +599,8 @@ def get_app_git_branch(app):
 	"""Git branch to use in GitHub links for this app.
 
 	Prefers a ref that exists on the remote so local-only feature branches do not
-	produce 404s. Order: local branch if on origin → upstream → origin default → local.
+	produce 404s. Order: local branch if on origin → upstream → origin default.
+	Returns empty if none of those are available.
 	"""
 	repo_root = os.path.dirname(get_app_path(app))
 	local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
@@ -614,7 +615,7 @@ def get_app_git_branch(app):
 	if default and "/" in default:
 		return default.split("/", 1)[1]
 
-	return local if local and local != "HEAD" else ""
+	return ""
 
 
 def _git_output(repo_root, *args):
