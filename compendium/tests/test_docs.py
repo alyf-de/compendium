@@ -640,6 +640,50 @@ class TestDocs(FrappeTestCase):
 			):
 				self.assertEqual(get_app_git_branch("pkg"), "version-15")
 
+	def test_git_branch_uses_origin_upstream(self):
+		from compendium.docs import get_app_git_branch
+
+		with tempfile.TemporaryDirectory() as tmp:
+			app_root = os.path.join(tmp, "pkg")
+			os.makedirs(app_root)
+
+			def git_output(repo_root, *args):
+				if args == ("rev-parse", "--abbrev-ref", "HEAD"):
+					return "feat/local-only"
+				if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+					return "origin/version-15"
+				return ""
+
+			with (
+				patch("compendium.docs.get_app_path", return_value=app_root),
+				patch("compendium.docs._git_output", side_effect=git_output),
+				patch("compendium.docs._git_ref_exists", return_value=False),
+			):
+				self.assertEqual(get_app_git_branch("pkg"), "version-15")
+
+	def test_git_branch_skips_non_origin_upstream(self):
+		from compendium.docs import get_app_git_branch
+
+		with tempfile.TemporaryDirectory() as tmp:
+			app_root = os.path.join(tmp, "pkg")
+			os.makedirs(app_root)
+
+			def git_output(repo_root, *args):
+				if args == ("rev-parse", "--abbrev-ref", "HEAD"):
+					return "feat/local-only"
+				if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+					return "fork/feat/local-only"
+				if args == ("symbolic-ref", "--short", "refs/remotes/origin/HEAD"):
+					return "origin/version-15"
+				return ""
+
+			with (
+				patch("compendium.docs.get_app_path", return_value=app_root),
+				patch("compendium.docs._git_output", side_effect=git_output),
+				patch("compendium.docs._git_ref_exists", return_value=False),
+			):
+				self.assertEqual(get_app_git_branch("pkg"), "version-15")
+
 	def test_git_branch_skips_unverified_local_branch(self):
 		from compendium.docs import get_app_git_branch
 
