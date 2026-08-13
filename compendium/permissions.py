@@ -1,5 +1,7 @@
 import frappe
 
+CONTRIBUTOR_ROLE = "Compendium Contributor"
+
 
 def has_app_permission():
 	"""Show Compendium on the apps screen for Desk users."""

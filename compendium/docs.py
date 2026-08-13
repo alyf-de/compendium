@@ -4,14 +4,18 @@
 import importlib.util
 import os
 import re
+import subprocess
 from collections import Counter
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import frappe
 from frappe import _
 from frappe.translate import get_parent_language
 from frappe.utils import cint, get_url, has_common, sanitize_html
+from frappe.utils.change_log import parse_github_url
 from frappe.website.utils import extract_title, get_frontmatter
+
+from compendium.permissions import CONTRIBUTOR_ROLE
 
 DOCS_FOLDER = "docs"
 DEFAULT_LANG = "en"
@@ -108,6 +112,7 @@ def build_page_payload(page, locale):
 		"content": content,
 		"toc_html": render_toc(page.body),
 		"roles": [_(role) for role in matching_roles],
+		"edit_url": get_edit_url(page),
 	}
 
 
@@ -534,6 +539,160 @@ def is_permitted(page):
 		return True
 
 	return has_common(get_user_roles(), page.roles)
+
+
+def can_edit_on_github():
+	"""Only contributors see the Edit on GitHub control."""
+	if frappe.session.user == "Administrator":
+		return True
+
+	return CONTRIBUTOR_ROLE in get_user_roles()
+
+
+def get_edit_url(page):
+	"""GitHub edit URL for the Markdown file currently rendered, or None."""
+	if not can_edit_on_github():
+		return None
+
+	repository = get_app_repository_url(page.app)
+	if not repository:
+		return None
+
+	try:
+		owner, repo = parse_github_url(repository)
+	except ValueError:
+		return None
+
+	if not owner or not repo:
+		return None
+
+	branch = get_app_git_branch(page.app)
+	if not branch or branch == "HEAD":
+		return None
+
+	relative_path = get_repo_relative_path(page)
+	if not relative_path:
+		return None
+
+	# Branch names may contain slashes (e.g. feat/foo); encode so GitHub can
+	# tell the ref apart from the file path.
+	return f"https://github.com/{owner}/{repo}/edit/{quote(branch, safe='')}/{relative_path}"
+
+
+@frappe.request_cache
+def get_app_repository_url(app):
+	"""Repository URL from the app's pyproject.toml `[project.urls]` Repository key."""
+	from tomli import load
+
+	pyproject_path = os.path.join(os.path.dirname(get_app_path(app)), "pyproject.toml")
+	if not os.path.isfile(pyproject_path):
+		return None
+
+	with open(pyproject_path, "rb") as f:
+		data = load(f)
+
+	url = (data.get("project") or {}).get("urls", {}).get("Repository")
+	return url.rstrip("/") if url else None
+
+
+def get_app_git_branch(app):
+	"""Git branch to use in GitHub links for this app.
+
+	Uses a ref from the git remote that matches `[project.urls].Repository`, so
+	forks and local-only branches do not produce 404s. Order: current branch if
+	on that remote → its upstream if on that remote → that remote's default.
+	Returns empty if none of those are available.
+	"""
+	repo_root = os.path.dirname(get_app_path(app))
+	remote = _remote_for_repository(repo_root, get_app_repository_url(app))
+	if not remote:
+		return ""
+
+	local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
+	if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/{remote}/{local}"):
+		return local
+
+	upstream = _git_output(repo_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+	tracking_remote, _, branch = upstream.partition("/")
+	if tracking_remote == remote and branch:
+		return branch
+
+	prefix = f"{remote}/"
+	default = _git_output(repo_root, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
+	if default.startswith(prefix):
+		return default[len(prefix) :]
+
+	return ""
+
+
+def _git_output(repo_root, *args):
+	try:
+		with open(os.devnull, "wb") as null_stream:
+			result = subprocess.check_output(
+				["git", "-C", repo_root, *args],
+				shell=False,
+				stdin=null_stream,
+				stderr=null_stream,
+			)
+	except (OSError, subprocess.CalledProcessError):
+		return ""
+
+	return result.decode().strip()
+
+
+def _git_ref_exists(repo_root, ref):
+	try:
+		with open(os.devnull, "wb") as null_stream:
+			subprocess.check_call(
+				["git", "-C", repo_root, "show-ref", "--verify", "--quiet", ref],
+				shell=False,
+				stdin=null_stream,
+				stdout=null_stream,
+				stderr=null_stream,
+			)
+	except (OSError, subprocess.CalledProcessError):
+		return False
+
+	return True
+
+
+def _remote_for_repository(repo_root, repository):
+	"""Git remote whose URL points at the same GitHub owner/repo as `repository`."""
+	target = _github_repo(repository)
+	if not target:
+		return ""
+
+	for remote in _git_output(repo_root, "remote").split():
+		if _github_repo(_git_output(repo_root, "remote", "get-url", remote)) == target:
+			return remote
+	return ""
+
+
+def _github_repo(url):
+	if not url:
+		return None
+	try:
+		owner, repo = parse_github_url(url)
+	except ValueError:
+		return None
+	if not owner or not repo:
+		return None
+	return (owner.lower(), repo.lower())
+
+
+def get_repo_relative_path(page):
+	"""Path of the page's Markdown file relative to the app repository root."""
+	repo_root = os.path.realpath(os.path.dirname(page.app_path))
+	filepath = os.path.realpath(page.filepath)
+	try:
+		relative = os.path.relpath(filepath, repo_root)
+	except ValueError:
+		return None
+
+	if relative.startswith(".."):
+		return None
+
+	return relative.replace(os.sep, "/")
 
 
 def build_navigation_tree(locale=None):

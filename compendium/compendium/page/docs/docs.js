@@ -410,7 +410,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.render_heading_anchors();
 		this.render_fallback_notice(doc);
-		this.render_roles(doc.roles);
+		this.render_page_footer(doc);
 		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
 		// fragment scrolls wait on layout_ready so they use the final layout.
 		this.layout_ready = this.render_mermaid();
@@ -533,17 +533,33 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		).prependTo(this.$reading);
 	}
 
-	render_roles(roles) {
-		if (!roles?.length) {
+	render_page_footer(doc) {
+		const roles = doc.roles || [];
+		const parts = [];
+
+		if (roles.length) {
+			const labels = roles.map((role) => frappe.utils.escape_html(role)).join(", ");
+			parts.push(
+				roles.length === 1
+					? __("You can see this page because you have the role {0}.", [labels])
+					: __("You can see this page because you have the roles {0}.", [labels])
+			);
+		}
+
+		if (doc.edit_url) {
+			const label = frappe.utils.escape_html(__("Edit on GitHub"));
+			parts.push(
+				`<a class="docs-edit-link" href="${frappe.utils.escape_html(
+					doc.edit_url
+				)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+			);
+		}
+
+		if (!parts.length) {
 			return;
 		}
 
-		const labels = roles.map((role) => frappe.utils.escape_html(role)).join(", ");
-		const message =
-			roles.length === 1
-				? __("You can see this page because you have the role {0}.", [labels])
-				: __("You can see this page because you have the roles {0}.", [labels]);
-		this.$reading.append(`<footer class="docs-page-roles">${message}</footer>`);
+		this.$reading.append(`<footer class="docs-page-footer">${parts.join("<br>")}</footer>`);
 	}
 
 	render_mermaid() {

@@ -79,6 +79,17 @@ Verweisen Sie im Markdown mit relativen Pfaden auf Bilder. Compendium liefert si
 über `compendium.docs.get_asset` aus, sodass Assets im `docs/`-Baum der jeweiligen
 App bleiben.
 
+## Auf GitHub bearbeiten
+
+Wenn eine App unter `[project.urls]` in ihrer `pyproject.toml` eine GitHub-
+`Repository`-URL angibt, sehen Nutzer mit der Rolle **Compendium Contributor**
+einen Link **Edit on GitHub**, der die Markdown-Datei der aktuellen Seite öffnet.
+
+```toml
+[project.urls]
+Repository = "https://github.com/alyf-de/compendium.git"
+```
+
 ## Mermaid-Diagramme
 
 `mermaid`-Codeblöcke werden im Lesebereich als Diagramm dargestellt:
