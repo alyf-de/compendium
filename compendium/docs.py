@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -11,7 +12,7 @@ from urllib.parse import quote, urlencode
 import frappe
 from frappe import _
 from frappe.translate import get_parent_language
-from frappe.utils import cint, get_url, has_common, sanitize_html
+from frappe.utils import cint, get_bench_path, get_url, has_common, sanitize_html
 from frappe.utils.change_log import parse_github_url
 from frappe.website.utils import extract_title, get_frontmatter
 
@@ -595,32 +596,69 @@ def get_app_repository_url(app):
 	return url.rstrip("/") if url else None
 
 
+@frappe.request_cache
 def get_app_git_branch(app):
 	"""Git branch to use in GitHub links for this app.
 
 	Uses a ref from the git remote that matches `[project.urls].Repository`, so
 	forks and local-only branches do not produce 404s. Order: current branch if
 	on that remote → its upstream if on that remote → that remote's default.
-	Returns empty if none of those are available.
+
+	Production images (Frappe Cloud, frappe_docker) strip `.git`, and remotes
+	may not point at GitHub. Then use the branch bench recorded at install.
 	"""
 	repo_root = os.path.dirname(get_app_path(app))
 	remote = _remote_for_repository(repo_root, get_app_repository_url(app))
-	if not remote:
-		return ""
+	if remote:
+		local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
+		if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/{remote}/{local}"):
+			return local
 
-	local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
-	if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/{remote}/{local}"):
-		return local
+		upstream = _git_output(repo_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+		tracking_remote, _, branch = upstream.partition("/")
+		if tracking_remote == remote and branch:
+			return branch
 
-	upstream = _git_output(repo_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
-	tracking_remote, _, branch = upstream.partition("/")
-	if tracking_remote == remote and branch:
+		prefix = f"{remote}/"
+		default = _git_output(repo_root, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
+		if default.startswith(prefix):
+			return default[len(prefix) :]
+
+	return get_recorded_app_branch(app)
+
+
+def get_recorded_app_branch(app):
+	"""Branch recorded for this app when a live canonical git remote is unavailable."""
+	branch = get_apps_json_branch(app)
+	if branch:
 		return branch
 
-	prefix = f"{remote}/"
-	default = _git_output(repo_root, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
-	if default.startswith(prefix):
-		return default[len(prefix) :]
+	recorded = frappe.db.get_value("Installed Application", {"app_name": app}, "git_branch")
+	if recorded and recorded not in ("UNVERSIONED", "HEAD"):
+		return recorded
+
+	return ""
+
+
+def get_apps_json_branch(app):
+	"""Branch from sites/apps.json, written by bench get-app before `.git` is stripped."""
+	apps_json_path = os.path.join(get_bench_path(), "sites", "apps.json")
+	if not os.path.isfile(apps_json_path):
+		return ""
+
+	try:
+		with open(apps_json_path, encoding="utf-8") as f:
+			data = json.load(f)
+	except (OSError, ValueError):
+		return ""
+
+	if not isinstance(data, dict):
+		return ""
+
+	app_info = data.get(app) or {}
+	branch = (app_info.get("resolution") or {}).get("branch")
+	if branch and branch not in ("UNVERSIONED", "HEAD"):
+		return branch
 
 	return ""
 

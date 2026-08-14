@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 from unittest.mock import patch
@@ -685,6 +686,36 @@ class TestDocs(FrappeTestCase):
 			ref_exists=True,
 		)
 
+	def test_git_branch_falls_back_to_recorded_without_git(self):
+		self.assert_git_branch(
+			"version-15",
+			{("remote",): ""},
+			recorded_branch="version-15",
+		)
+
+	def test_git_branch_falls_back_to_recorded_when_no_canonical_remote(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/jane/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "feat/on-fork",
+			},
+			ref_exists=True,
+			recorded_branch="version-15",
+		)
+
+	def test_git_branch_falls_back_to_recorded_when_detached(self):
+		self.assert_git_branch(
+			"version-15",
+			{
+				("remote",): "origin",
+				("remote", "get-url", "origin"): "https://github.com/alyf-de/example.git",
+				("rev-parse", "--abbrev-ref", "HEAD"): "HEAD",
+			},
+			recorded_branch="version-15",
+		)
+
 	def test_git_branch_skips_unverified_local_branch(self):
 		self.assert_git_branch(
 			"",
@@ -695,6 +726,43 @@ class TestDocs(FrappeTestCase):
 			},
 		)
 
+	def test_apps_json_branch_reads_resolution(self):
+		from compendium.docs import get_apps_json_branch
+
+		with tempfile.TemporaryDirectory() as tmp:
+			os.makedirs(os.path.join(tmp, "sites"))
+			with open(os.path.join(tmp, "sites", "apps.json"), "w", encoding="utf-8") as f:
+				json.dump(
+					{
+						"alyf": {
+							"resolution": {"commit_hash": "abc", "branch": "version-15"},
+						}
+					},
+					f,
+				)
+
+			with patch("compendium.docs.get_bench_path", return_value=tmp):
+				self.assertEqual(get_apps_json_branch("alyf"), "version-15")
+				self.assertEqual(get_apps_json_branch("missing"), "")
+
+	def test_recorded_branch_uses_installed_application(self):
+		from compendium.docs import get_recorded_app_branch
+
+		with (
+			patch("compendium.docs.get_apps_json_branch", return_value=""),
+			patch("frappe.db.get_value", return_value="version-15"),
+		):
+			self.assertEqual(get_recorded_app_branch("alyf"), "version-15")
+
+	def test_recorded_branch_skips_unversioned(self):
+		from compendium.docs import get_recorded_app_branch
+
+		with (
+			patch("compendium.docs.get_apps_json_branch", return_value=""),
+			patch("frappe.db.get_value", return_value="UNVERSIONED"),
+		):
+			self.assertEqual(get_recorded_app_branch("alyf"), "")
+
 	def assert_git_branch(
 		self,
 		expected,
@@ -702,8 +770,12 @@ class TestDocs(FrappeTestCase):
 		*,
 		ref_exists=False,
 		repository="https://github.com/alyf-de/example.git",
+		recorded_branch="",
 	):
 		from compendium.docs import get_app_git_branch
+
+		if hasattr(frappe.local, "request_cache"):
+			frappe.local.request_cache.clear()
 
 		with tempfile.TemporaryDirectory() as tmp:
 			app_root = os.path.join(tmp, "pkg")
@@ -717,6 +789,7 @@ class TestDocs(FrappeTestCase):
 				patch("compendium.docs.get_app_repository_url", return_value=repository),
 				patch("compendium.docs._git_output", side_effect=git_output),
 				patch("compendium.docs._git_ref_exists", return_value=ref_exists),
+				patch("compendium.docs.get_recorded_app_branch", return_value=recorded_branch),
 			):
 				self.assertEqual(get_app_git_branch("pkg"), expected)
 
