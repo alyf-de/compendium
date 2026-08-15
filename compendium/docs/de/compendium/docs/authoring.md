@@ -110,6 +110,34 @@ def hello():
 	print("Hello")
 ```
 
+## Alerts
+
+Die GitHub-Alert-Syntax macht aus einem Blockzitat einen Hinweis. Die Zeile
+`[!TYPE]` wird durch ein Symbol und eine fette Überschrift ersetzt. Fünf Typen
+stehen zur Verfügung:
+
+> [!NOTE]
+> Zusatzinformation, die auch beim Überfliegen nützlich ist.
+
+> [!TIP]
+> Ein Rat, der eine Aufgabe leichter macht.
+
+> [!IMPORTANT]
+> Information, die der Leser braucht, um sein Ziel zu erreichen.
+
+> [!WARNING]
+> Dringende Information. Handeln Sie, um ein Problem zu vermeiden.
+
+> [!CAUTION]
+> Ein Risiko oder eine negative Folge einer Handlung.
+
+Schreiben Sie sie als Blockzitat, dessen erste Zeile der Typmarker ist:
+
+```md
+> [!NOTE]
+> Zusatzinformation, die auch beim Überfliegen nützlich ist.
+```
+
 ## Beispielseite
 
 ```md
