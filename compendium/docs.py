@@ -826,11 +826,11 @@ def apply_github_alerts(html):
 			(
 				child
 				for child in paragraph.children
-				if isinstance(child, NavigableString) and str(child).strip()
+				if not isinstance(child, NavigableString) or str(child).strip()
 			),
 			None,
 		)
-		if text_node is None:
+		if not isinstance(text_node, NavigableString):
 			continue
 
 		leading = str(text_node).lstrip()

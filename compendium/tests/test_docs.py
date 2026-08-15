@@ -203,6 +203,12 @@ class TestDocs(FrappeTestCase):
 		self.assertIn("docs-alert-note", html)
 		self.assertNotIn("[!note]", html)
 
+	def test_github_alert_ignores_marker_after_inline_markup(self):
+		html = render_page_content("> **See** [!NOTE]\n> not an alert")
+		self.assertNotIn("docs-alert", html)
+		self.assertIn("[!NOTE]", html)
+		self.assertIn("See", html)
+
 	def test_protected_assets_require_page_access(self):
 		with self.docs_environment(
 			{
