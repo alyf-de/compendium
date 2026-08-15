@@ -10,6 +10,7 @@ from frappe.tests.utils import FrappeTestCase
 from compendium.docs import (
 	build_navigation_tree,
 	discover_pages,
+	get_asset,
 	get_first_page,
 	get_locales,
 	get_page,
@@ -172,6 +173,20 @@ class TestDocs(FrappeTestCase):
 			frappe.set_user("Administrator")
 			asset_file = resolve_asset_path(page, "logo.png")
 			self.assertTrue(asset_file.endswith("logo.png"))
+
+	def test_get_asset_serves_svg_inline(self):
+		svg = b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+		with self.docs_environment(
+			{
+				"en/page.md": "---\ntitle: Page\n---\n![Diagram](diagram.svg)",
+				"en/diagram.svg": svg,
+			}
+		):
+			get_asset("page", "diagram.svg", locale="en")
+			self.assertEqual(frappe.response["type"], "download")
+			self.assertEqual(frappe.response["display_content_as"], "inline")
+			self.assertEqual(frappe.response["filename"], "diagram.svg")
+			self.assertEqual(frappe.response["filecontent"], svg)
 
 	def test_get_first_page_and_tree_ordering(self):
 		with self.docs_environment(
