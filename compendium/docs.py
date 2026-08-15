@@ -23,6 +23,14 @@ DEFAULT_LANG = "en"
 DEFAULT_ROLE = "Desk User"
 ALLOWED_FRONTMATTER_KEYS = ("title", "order", "roles")
 IMAGE_SRC_PATTERN = re.compile(r'(<img[^>]+src=["\'])([^"\']+)(["\'])', re.IGNORECASE)
+GITHUB_ALERT_MARKER = re.compile(r"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*", re.IGNORECASE)
+GITHUB_ALERTS = {
+	"NOTE": ("Note", "info"),
+	"TIP": ("Tip", "light-bulb"),
+	"IMPORTANT": ("Important", "megaphone"),
+	"WARNING": ("Warning", "alert"),
+	"CAUTION": ("Caution", "stop"),
+}
 
 
 @frappe.whitelist()
@@ -796,8 +804,69 @@ def sort_tree_nodes(nodes):
 
 def render_page_content(body, page_path="", locale=None):
 	html = frappe.utils.md_to_html(body or "")
-	content = sanitize_html(str(html), linkify=True)
+	content = apply_github_alerts(str(html))
+	content = sanitize_html(content, linkify=True)
 	return rewrite_asset_urls(content, page_path, locale)
+
+
+def apply_github_alerts(html):
+	"""Turn GitHub alert markers into a titled, typed blockquote."""
+	from bs4 import BeautifulSoup, NavigableString
+
+	if not html or "[!" not in html:
+		return html
+
+	soup = BeautifulSoup(html, "html.parser")
+	for blockquote in soup.find_all("blockquote"):
+		paragraph = next((child for child in blockquote.children if child.name), None)
+		if not paragraph or paragraph.name != "p":
+			continue
+
+		text_node = next(
+			(
+				child
+				for child in paragraph.children
+				if not isinstance(child, NavigableString) or str(child).strip()
+			),
+			None,
+		)
+		if not isinstance(text_node, NavigableString):
+			continue
+
+		leading = str(text_node).lstrip()
+		match = GITHUB_ALERT_MARKER.match(leading)
+		if not match:
+			continue
+
+		alert_type = match.group(1).upper()
+		remainder = leading[match.end() :].lstrip()
+		blockquote["class"] = [
+			*(blockquote.get("class") or []),
+			"docs-alert",
+			f"docs-alert-{alert_type.lower()}",
+		]
+		title = build_alert_title(soup, alert_type)
+
+		if remainder:
+			text_node.replace_with(remainder)
+			paragraph.insert_before(title)
+		else:
+			text_node.extract()
+			if paragraph.get_text(strip=True) or paragraph.find(True):
+				paragraph.insert_before(title)
+			else:
+				paragraph.replace_with(title)
+
+	return str(soup)
+
+
+def build_alert_title(soup, alert_type):
+	label, icon = GITHUB_ALERTS[alert_type]
+	title = soup.new_tag("p", attrs={"class": "docs-alert-title"})
+	icon_tag = soup.new_tag("i", attrs={"class": f"octicon octicon-{icon}"})
+	title.append(icon_tag)
+	title.append(label)
+	return title
 
 
 def rewrite_asset_urls(html, page_path, locale=None):

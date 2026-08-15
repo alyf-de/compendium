@@ -156,6 +156,59 @@ class TestDocs(FrappeTestCase):
 		self.assertIn("language-mermaid", html)
 		self.assertIn("flowchart LR", html)
 
+	def test_github_alert_replaces_marker_with_title(self):
+		html = render_page_content("> [!NOTE]\n> Useful information")
+		self.assertIn("docs-alert-note", html)
+		self.assertIn("octicon-info", html)
+		self.assertIn("Note", html)
+		self.assertIn("Useful information", html)
+		self.assertNotIn("[!NOTE]", html)
+
+	def test_github_alert_types(self):
+		cases = {
+			"TIP": ("docs-alert-tip", "octicon-light-bulb", "Tip"),
+			"IMPORTANT": ("docs-alert-important", "octicon-megaphone", "Important"),
+			"WARNING": ("docs-alert-warning", "octicon-alert", "Warning"),
+			"CAUTION": ("docs-alert-caution", "octicon-stop", "Caution"),
+		}
+		for marker, (css_class, icon, heading) in cases.items():
+			html = render_page_content(f"> [!{marker}]\n> Body")
+			self.assertIn(css_class, html)
+			self.assertIn(icon, html)
+			self.assertIn(heading, html)
+			self.assertIn("Body", html)
+			self.assertNotIn(f"[!{marker}]", html)
+
+	def test_github_alert_with_following_list(self):
+		html = render_page_content("> [!NOTE]\n>\n> - first\n> - second")
+		self.assertIn("docs-alert-note", html)
+		self.assertIn("octicon-info", html)
+		self.assertNotIn("[!NOTE]", html)
+		self.assertIn("<li>", html)
+
+	def test_unknown_alert_marker_stays_blockquote(self):
+		html = render_page_content("> [!UNKNOWN]\n> Body")
+		self.assertNotIn("docs-alert", html)
+		self.assertIn("[!UNKNOWN]", html)
+		self.assertIn("Body", html)
+
+	def test_plain_blockquote_is_unchanged(self):
+		html = render_page_content("> just a quote")
+		self.assertNotIn("docs-alert", html)
+		self.assertNotIn("octicon", html)
+		self.assertIn("just a quote", html)
+
+	def test_github_alert_type_is_case_insensitive(self):
+		html = render_page_content("> [!note]\n> Useful")
+		self.assertIn("docs-alert-note", html)
+		self.assertNotIn("[!note]", html)
+
+	def test_github_alert_ignores_marker_after_inline_markup(self):
+		html = render_page_content("> **See** [!NOTE]\n> not an alert")
+		self.assertNotIn("docs-alert", html)
+		self.assertIn("[!NOTE]", html)
+		self.assertIn("See", html)
+
 	def test_protected_assets_require_page_access(self):
 		with self.docs_environment(
 			{

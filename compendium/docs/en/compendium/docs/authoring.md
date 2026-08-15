@@ -106,6 +106,33 @@ def hello():
 	print("Hello")
 ```
 
+## Alerts
+
+GitHub alert syntax turns a blockquote into a callout. The `[!TYPE]` line
+becomes an icon and a bold heading. Five types are available:
+
+> [!NOTE]
+> Extra information that is useful even when skimming.
+
+> [!TIP]
+> Advice that makes a task easier.
+
+> [!IMPORTANT]
+> Information the reader needs to reach their goal.
+
+> [!WARNING]
+> Urgent information. Act on it to avoid a problem.
+
+> [!CAUTION]
+> A risk or a negative outcome of an action.
+
+Write them as a blockquote whose first line is the type marker:
+
+```md
+> [!NOTE]
+> Extra information that is useful even when skimming.
+```
+
 ## Example page
 
 ```md
