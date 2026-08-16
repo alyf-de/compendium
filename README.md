@@ -6,6 +6,10 @@
 
 In-app documentation for Frappe Desk. Compendium aggregates Markdown files from every installed app's `docs/{language}/**/*.md` tree and serves them at `/app/docs`.
 
+<p align="center">
+  <img src="compendium/public/images/demo.webp" alt="Compendium Demo" width="512">
+</p>
+
 See the [built-in docs](compendium/docs) for authoring conventions and a getting-started guide.
 
 ### Features
