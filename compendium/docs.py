@@ -215,9 +215,13 @@ def get_asset(page_path: str, asset_path: str, locale: str | None = None):
 	with open(asset_file, "rb") as f:
 		content = f.read()
 
-	frappe.response["type"] = "binary"
-	frappe.response["filename"] = os.path.basename(asset_file)
+	filename = os.path.basename(asset_file)
+	# as_raw (type "download") sets the MIME type from the filename. type "binary"
+	# is always application/octet-stream, which browsers refuse to render as SVG.
+	frappe.response["type"] = "download"
+	frappe.response["filename"] = filename
 	frappe.response["filecontent"] = content
+	frappe.response["display_content_as"] = "inline"
 
 
 def get_documented_locale_infos(raw_pages=None):
