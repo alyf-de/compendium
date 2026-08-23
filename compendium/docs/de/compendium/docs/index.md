@@ -1,6 +1,6 @@
 ---
 title: App-interne Dokumentation
-translated_from_rev: 82e1353
+translated_from_rev: f837f9e
 ---
 
 Mit Compendium können Frappe-Apps ihre Benutzerdokumentation als Markdown-Dateien in einem `docs/`-Ordner im App-Paket ausliefern.
@@ -15,4 +15,6 @@ Mit Compendium können Frappe-Apps ihre Benutzerdokumentation als Markdown-Datei
 - Ohne `roles` ist eine Seite für alle **Desk User** sichtbar
 - Später installierte Apps überschreiben Seiten mit gleichem logischem Pfad
 
-Eine Einführung finden Sie unter [Erste Schritte](/app/docs/compendium/docs/getting-started).
+Eine Einführung finden Sie unter [Erste Schritte](/app/docs/compendium/docs/getting-started),
+und unter [Suche](/app/docs/compendium/docs/search), wie Sie eine Seite über die
+Awesome Bar finden.
