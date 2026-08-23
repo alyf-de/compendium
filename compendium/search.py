@@ -132,8 +132,12 @@ def to_plain_text(markdown):
 
 	Markdown source makes both a poor preview and a poor index: a snippet cut out of it
 	shows syntax mid-sentence, and link targets match queries the reader never sees.
+	Image alt text is the exception among attributes — it is prose, so it is kept.
 	"""
 	from bs4 import BeautifulSoup
 
-	text = BeautifulSoup(frappe.utils.md_to_html(markdown or ""), "html.parser").get_text(" ")
-	return re.sub(r"\s+", " ", text).strip()
+	soup = BeautifulSoup(frappe.utils.md_to_html(markdown or ""), "html.parser")
+	for image in soup.find_all("img"):
+		image.replace_with(image.get("alt") or "")
+
+	return re.sub(r"\s+", " ", soup.get_text(" ")).strip()

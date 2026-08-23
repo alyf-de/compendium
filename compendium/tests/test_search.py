@@ -149,3 +149,15 @@ class TestSearch(FrappeTestCase):
 			results = awesomebar_results("hyphenation")
 
 		self.assertEqual([item["label"] for item in results], ["Extra"])
+
+	def test_finds_image_alt_text_and_code_blocks(self):
+		with DocsTestEnvironment(
+			{
+				"en/setup.md": (
+					"---\ntitle: Setup\n---\n"
+					"![The hyphenation dialog](dialog.png)\n\n```\nbench build --hard\n```"
+				)
+			}
+		):
+			self.assertEqual([item["label"] for item in awesomebar_results("hyphenation")], ["Setup"])
+			self.assertEqual([item["label"] for item in awesomebar_results("bench build")], ["Setup"])
