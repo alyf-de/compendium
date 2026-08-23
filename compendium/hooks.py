@@ -46,6 +46,9 @@ standard_help_items = [
 	},
 ]
 
+# Extra Awesome Bar results: list of dicts with label, description, route, index.
+awesomebar_search = ["compendium.search.awesomebar_results"]
+
 # include js, css files in header of web template
 # web_include_css = "/assets/compendium/css/compendium.css"
 # web_include_js = "/assets/compendium/js/compendium.js"

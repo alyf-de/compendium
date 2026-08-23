@@ -916,9 +916,7 @@ class DocsTestEnvironment:
 
 		if self.repository:
 			with open(os.path.join(self.tmpdir.name, "pyproject.toml"), "w", encoding="utf-8") as f:
-				f.write(
-					'[project]\nname = "example"\n\n[project.urls]\n' f'Repository = "{self.repository}"\n'
-				)
+				f.write(f'[project]\nname = "example"\n\n[project.urls]\nRepository = "{self.repository}"\n')
 
 		self._patches = [
 			patch("compendium.docs.get_installed_apps", return_value=["frappe"]),
