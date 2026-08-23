@@ -2,17 +2,15 @@
 # License: MIT. See LICENSE
 
 import importlib.util
-import json
 import os
 import re
-import subprocess
 from collections import Counter
 from urllib.parse import quote, urlencode
 
 import frappe
 from frappe import _
 from frappe.translate import get_parent_language
-from frappe.utils import cint, get_bench_path, get_url, has_common, sanitize_html
+from frappe.utils import cint, get_url, has_common, sanitize_html
 from frappe.utils.change_log import parse_github_url
 from frappe.website.utils import extract_title, get_frontmatter
 
@@ -579,8 +577,8 @@ def get_edit_url(page):
 	if not owner or not repo:
 		return None
 
-	branch = get_app_git_branch(page.app)
-	if not branch or branch == "HEAD":
+	branch = get_app_docs_branch(page.app)
+	if not branch:
 		return None
 
 	relative_path = get_repo_relative_path(page)
@@ -593,141 +591,27 @@ def get_edit_url(page):
 
 
 @frappe.request_cache
-def get_app_repository_url(app):
-	"""Repository URL from the app's pyproject.toml `[project.urls]` Repository key."""
+def get_app_pyproject(app):
+	"""Parsed pyproject.toml for an installed app, or an empty dict."""
 	from tomli import load
 
 	pyproject_path = os.path.join(os.path.dirname(get_app_path(app)), "pyproject.toml")
 	if not os.path.isfile(pyproject_path):
-		return None
+		return {}
 
 	with open(pyproject_path, "rb") as f:
-		data = load(f)
+		return load(f)
 
-	url = (data.get("project") or {}).get("urls", {}).get("Repository")
+
+def get_app_repository_url(app):
+	"""Repository URL from the app's pyproject.toml `[project.urls]` Repository key."""
+	url = (get_app_pyproject(app).get("project") or {}).get("urls", {}).get("Repository")
 	return url.rstrip("/") if url else None
 
 
-@frappe.request_cache
-def get_app_git_branch(app):
-	"""Git branch to use in GitHub links for this app.
-
-	Uses a ref from the git remote that matches `[project.urls].Repository`, so
-	forks and local-only branches do not produce 404s. Order: current branch if
-	on that remote → its upstream if on that remote → that remote's default.
-
-	Production images (Frappe Cloud, frappe_docker) strip `.git`, and remotes
-	may not point at GitHub. Then use the branch bench recorded at install.
-	"""
-	repo_root = os.path.dirname(get_app_path(app))
-	remote = _remote_for_repository(repo_root, get_app_repository_url(app))
-	if remote:
-		local = _git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
-		if local and local != "HEAD" and _git_ref_exists(repo_root, f"refs/remotes/{remote}/{local}"):
-			return local
-
-		upstream = _git_output(repo_root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
-		tracking_remote, _, branch = upstream.partition("/")
-		if tracking_remote == remote and branch:
-			return branch
-
-		prefix = f"{remote}/"
-		default = _git_output(repo_root, "symbolic-ref", "--short", f"refs/remotes/{remote}/HEAD")
-		if default.startswith(prefix):
-			return default[len(prefix) :]
-
-	return get_recorded_app_branch(app)
-
-
-def get_recorded_app_branch(app):
-	"""Branch recorded for this app when a live canonical git remote is unavailable."""
-	branch = get_apps_json_branch(app)
-	if branch:
-		return branch
-
-	recorded = frappe.db.get_value("Installed Application", {"app_name": app}, "git_branch")
-	if recorded and recorded not in ("UNVERSIONED", "HEAD"):
-		return recorded
-
-	return ""
-
-
-def get_apps_json_branch(app):
-	"""Branch from sites/apps.json, written by bench get-app before `.git` is stripped."""
-	apps_json_path = os.path.join(get_bench_path(), "sites", "apps.json")
-	if not os.path.isfile(apps_json_path):
-		return ""
-
-	try:
-		with open(apps_json_path, encoding="utf-8") as f:
-			data = json.load(f)
-	except (OSError, ValueError):
-		return ""
-
-	if not isinstance(data, dict):
-		return ""
-
-	app_info = data.get(app) or {}
-	branch = (app_info.get("resolution") or {}).get("branch")
-	if branch and branch not in ("UNVERSIONED", "HEAD"):
-		return branch
-
-	return ""
-
-
-def _git_output(repo_root, *args):
-	try:
-		with open(os.devnull, "wb") as null_stream:
-			result = subprocess.check_output(
-				["git", "-C", repo_root, *args],
-				shell=False,
-				stdin=null_stream,
-				stderr=null_stream,
-			)
-	except (OSError, subprocess.CalledProcessError):
-		return ""
-
-	return result.decode().strip()
-
-
-def _git_ref_exists(repo_root, ref):
-	try:
-		with open(os.devnull, "wb") as null_stream:
-			subprocess.check_call(
-				["git", "-C", repo_root, "show-ref", "--verify", "--quiet", ref],
-				shell=False,
-				stdin=null_stream,
-				stdout=null_stream,
-				stderr=null_stream,
-			)
-	except (OSError, subprocess.CalledProcessError):
-		return False
-
-	return True
-
-
-def _remote_for_repository(repo_root, repository):
-	"""Git remote whose URL points at the same GitHub owner/repo as `repository`."""
-	target = _github_repo(repository)
-	if not target:
-		return ""
-
-	for remote in _git_output(repo_root, "remote").split():
-		if _github_repo(_git_output(repo_root, "remote", "get-url", remote)) == target:
-			return remote
-	return ""
-
-
-def _github_repo(url):
-	if not url:
-		return None
-	try:
-		owner, repo = parse_github_url(url)
-	except ValueError:
-		return None
-	if not owner or not repo:
-		return None
-	return (owner.lower(), repo.lower())
+def get_app_docs_branch(app):
+	"""GitHub branch for Edit on GitHub, from `[tool.compendium] docs_branch`."""
+	return ((get_app_pyproject(app).get("tool") or {}).get("compendium") or {}).get("docs_branch") or ""
 
 
 def get_repo_relative_path(page):

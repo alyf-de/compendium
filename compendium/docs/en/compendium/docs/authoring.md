@@ -75,13 +75,16 @@ Reference images with relative paths in Markdown. Compendium serves them through
 
 ## Edit on GitHub
 
-When an app declares a GitHub `Repository` URL under `[project.urls]` in its
+When an app declares a GitHub `Repository` URL and a `docs_branch` in its
 `pyproject.toml`, contributors with the **Compendium Contributor** role see an
 **Edit on GitHub** link that opens the Markdown file for the current page.
 
 ```toml
 [project.urls]
 Repository = "https://github.com/alyf-de/compendium.git"
+
+[tool.compendium]
+docs_branch = "version-15"
 ```
 
 ## Mermaid diagrams
