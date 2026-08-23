@@ -78,13 +78,16 @@ App bleiben.
 
 ## Auf GitHub bearbeiten
 
-Wenn eine App unter `[project.urls]` in ihrer `pyproject.toml` eine GitHub-
-`Repository`-URL angibt, sehen Nutzer mit der Rolle **Compendium Contributor**
+Wenn eine App in ihrer `pyproject.toml` eine GitHub-`Repository`-URL und
+`docs_branch` angibt, sehen Nutzer mit der Rolle **Compendium Contributor**
 einen Link **Edit on GitHub**, der die Markdown-Datei der aktuellen Seite öffnet.
 
 ```toml
 [project.urls]
 Repository = "https://github.com/alyf-de/compendium.git"
+
+[tool.compendium]
+docs_branch = "version-15"
 ```
 
 ## Mermaid-Diagramme
