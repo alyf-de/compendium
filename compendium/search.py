@@ -107,12 +107,13 @@ def build_index(locale):
 
 @frappe.request_cache
 def get_docs_fingerprint():
-	"""Staleness check for the index: how many Markdown files there are, and the newest mtime.
+	"""Staleness check for the index: every Markdown file with its mtime and size.
 
 	Stat-only, so it costs a fraction of the reading and parsing an index build does.
+	A file count and a newest mtime would be cheaper but would miss a deployment that
+	restores the timestamps it found, leaving an edited page unsearchable until restart.
 	"""
-	count = 0
-	latest = 0
+	stamps = []
 
 	for app in docs.get_installed_apps():
 		docs_root = os.path.join(docs.get_app_path(app), DOCS_FOLDER)
@@ -121,10 +122,11 @@ def get_docs_fingerprint():
 				if not fname.endswith(".md"):
 					continue
 
-				count += 1
-				latest = max(latest, os.stat(os.path.join(basepath, fname)).st_mtime_ns)
+				filepath = os.path.join(basepath, fname)
+				stat = os.stat(filepath)
+				stamps.append((filepath, stat.st_mtime_ns, stat.st_size))
 
-	return count, latest
+	return tuple(sorted(stamps))
 
 
 def to_plain_text(markdown):

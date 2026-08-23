@@ -161,3 +161,23 @@ class TestSearch(FrappeTestCase):
 		):
 			self.assertEqual([item["label"] for item in awesomebar_results("hyphenation")], ["Setup"])
 			self.assertEqual([item["label"] for item in awesomebar_results("bench build")], ["Setup"])
+
+	def test_index_rebuilds_when_a_deployment_restores_timestamps(self):
+		files = {
+			"en/setup.md": "---\ntitle: Setup\n---\nRun bench migrate.",
+			"en/other.md": "---\ntitle: Other\n---\nNothing to see here.",
+		}
+		with DocsTestEnvironment(files) as docs_root:
+			self.assertEqual(awesomebar_results("hyphenation"), [])
+
+			newest = os.stat(os.path.join(docs_root, "en", "other.md")).st_mtime
+			setup = os.path.join(docs_root, "en", "setup.md")
+			with open(setup, "w", encoding="utf-8") as f:
+				f.write("---\ntitle: Setup\n---\nAbout hyphenation.")
+			# a deployment that preserves timestamps: same file count, same newest mtime
+			os.utime(setup, (newest - 60, newest - 60))
+
+			self.next_request()
+			results = awesomebar_results("hyphenation")
+
+		self.assertEqual([item["label"] for item in results], ["Setup"])
