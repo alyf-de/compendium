@@ -150,18 +150,6 @@ class TestSearch(FrappeTestCase):
 
 		self.assertEqual([item["label"] for item in results], ["Extra"])
 
-	def test_finds_image_alt_text_and_code_blocks(self):
-		with DocsTestEnvironment(
-			{
-				"en/setup.md": (
-					"---\ntitle: Setup\n---\n"
-					"![The hyphenation dialog](dialog.png)\n\n```\nbench build --hard\n```"
-				)
-			}
-		):
-			self.assertEqual([item["label"] for item in awesomebar_results("hyphenation")], ["Setup"])
-			self.assertEqual([item["label"] for item in awesomebar_results("bench build")], ["Setup"])
-
 	def test_index_rebuilds_when_a_deployment_restores_timestamps(self):
 		files = {
 			"en/setup.md": "---\ntitle: Setup\n---\nRun bench migrate.",
@@ -181,3 +169,42 @@ class TestSearch(FrappeTestCase):
 			results = awesomebar_results("hyphenation")
 
 		self.assertEqual([item["label"] for item in results], ["Setup"])
+
+	def test_permitted_page_ranked_below_unpermitted_ones_survives(self):
+		files = {
+			f"en/admin{index}.md": f"---\ntitle: Admin {index}\nroles: System Manager\n---\nAbout hyphenation."
+			for index in range(25)
+		}
+		# padded, so bm25 ranks it below every page the reader may not open
+		files["en/public.md"] = (
+			"---\ntitle: Public\nroles: Desk User\n---\nAbout hyphenation. " + "filler " * 200
+		)
+
+		with DocsTestEnvironment(files):
+			frappe.set_user("test@example.com")
+			with patch("compendium.docs.get_user_roles", return_value=["Desk User"]):
+				results = awesomebar_results("hyphenation")
+
+		self.assertEqual([item["label"] for item in results], ["Public"])
+
+	def test_caps_results_and_previews_every_one(self):
+		files = {
+			f"en/page{index}.md": f"---\ntitle: Page {index}\n---\nAbout hyphenation." for index in range(25)
+		}
+		with DocsTestEnvironment(files):
+			results = awesomebar_results("hyphenation")
+
+		self.assertEqual(len(results), 20)
+		self.assertTrue(all(item["description"] == "About hyphenation." for item in results))
+
+	def test_finds_image_alt_text_and_code_blocks(self):
+		with DocsTestEnvironment(
+			{
+				"en/setup.md": (
+					"---\ntitle: Setup\n---\n"
+					"![The hyphenation dialog](dialog.png)\n\n```\nbench build --hard\n```"
+				)
+			}
+		):
+			self.assertEqual([item["label"] for item in awesomebar_results("hyphenation")], ["Setup"])
+			self.assertEqual([item["label"] for item in awesomebar_results("bench build")], ["Setup"])

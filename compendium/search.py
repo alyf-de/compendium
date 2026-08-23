@@ -18,9 +18,13 @@ TOKEN_PATTERN = re.compile(r"\w+")
 SNIPPET_TOKENS = 12
 ROLE_SEPARATOR = "\n"
 # Columns are (path, title, roles, body); bm25 ranks a title hit above a body hit.
-SEARCH_SQL = f"""
-	SELECT path, title, roles, snippet(pages, 3, '', '', '…', {SNIPPET_TOKENS})
+RANK_SQL = """
+	SELECT rowid, path, title, roles
 	FROM pages WHERE pages MATCH ? ORDER BY bm25(pages, 2.0, 10.0, 0.0, 1.0)
+"""
+SNIPPET_SQL = f"""
+	SELECT rowid, snippet(pages, 3, '', '', '…', {SNIPPET_TOKENS})
+	FROM pages WHERE pages MATCH ? AND rowid IN ({{rowids}})
 """
 
 # ponytail: one lock for all indexes; per-index locks if search ever gets hot
@@ -37,10 +41,7 @@ def awesomebar_results(txt):
 	locale = normalize_locale(frappe.local.lang or DEFAULT_LANG)
 	results = []
 
-	for path, title, roles, snippet in search(locale, match_query):
-		if not is_permitted(frappe._dict(roles=roles.split(ROLE_SEPARATOR))):
-			continue
-
+	for path, title, snippet in search(locale, match_query):
 		route = f"/app/docs/{locale}/{path}" if path else f"/app/docs/{locale}"
 		results.append(
 			{
@@ -51,8 +52,6 @@ def awesomebar_results(txt):
 				"index": 50,
 			}
 		)
-		if len(results) >= RESULT_LIMIT:
-			break
 
 	return results
 
@@ -66,8 +65,35 @@ def build_match_query(txt):
 
 
 def search(locale, match_query):
+	"""The pages this user may read that match the query, best first, each with a preview.
+
+	Ranking and preview are separate passes: `snippet` re-scans a whole page body, so a
+	query matching every page pays for it once per page. Ranking has to see every match
+	anyway — a page the reader may open can rank below any number of pages they may not.
+	"""
 	with INDEX_LOCK:
-		return get_index(locale).execute(SEARCH_SQL, (match_query,)).fetchall()
+		index = get_index(locale)
+		hits = []
+
+		for rowid, path, title, roles in index.execute(RANK_SQL, (match_query,)):
+			if not is_permitted(frappe._dict(roles=roles.split(ROLE_SEPARATOR))):
+				continue
+
+			hits.append((rowid, path, title))
+			if len(hits) >= RESULT_LIMIT:
+				break
+
+		snippets = get_snippets(index, match_query, [rowid for rowid, _path, _title in hits])
+
+	return [(path, title, snippets.get(rowid, "")) for rowid, path, title in hits]
+
+
+def get_snippets(index, match_query, rowids):
+	if not rowids:
+		return {}
+
+	sql = SNIPPET_SQL.format(rowids=", ".join("?" * len(rowids)))
+	return dict(index.execute(sql, (match_query, *rowids)))
 
 
 def get_index(locale):
