@@ -22,9 +22,9 @@ RANK_SQL = """
 	SELECT rowid, path, title, roles
 	FROM pages WHERE pages MATCH ? ORDER BY bm25(pages, 2.0, 10.0, 0.0, 1.0)
 """
-SNIPPET_SQL = f"""
-	SELECT rowid, snippet(pages, 3, '', '', '…', {SNIPPET_TOKENS})
-	FROM pages WHERE pages MATCH ? AND rowid IN ({{rowids}})
+SNIPPET_SQL = """
+	SELECT rowid, snippet(pages, 3, '', '', '…', {snippet_tokens})
+	FROM pages WHERE pages MATCH ? AND rowid IN ({rowids})
 """
 
 # ponytail: one lock for all indexes; per-index locks if search ever gets hot
@@ -64,7 +64,7 @@ def build_match_query(txt):
 	return " ".join(f'"{token}"*' for token in TOKEN_PATTERN.findall((txt or "").lower()))
 
 
-def search(locale, match_query):
+def search(locale, match_query, snippet_tokens=SNIPPET_TOKENS):
 	"""The pages this user may read that match the query, best first, each with a preview.
 
 	Ranking and preview are separate passes: `snippet` re-scans a whole page body, so a
@@ -83,16 +83,18 @@ def search(locale, match_query):
 			if len(hits) >= RESULT_LIMIT:
 				break
 
-		snippets = get_snippets(index, match_query, [rowid for rowid, _path, _title in hits])
+		snippets = get_snippets(
+			index, match_query, [rowid for rowid, _path, _title in hits], snippet_tokens
+		)
 
 	return [(path, title, snippets.get(rowid, "")) for rowid, path, title in hits]
 
 
-def get_snippets(index, match_query, rowids):
+def get_snippets(index, match_query, rowids, snippet_tokens=SNIPPET_TOKENS):
 	if not rowids:
 		return {}
 
-	sql = SNIPPET_SQL.format(rowids=", ".join("?" * len(rowids)))
+	sql = SNIPPET_SQL.format(snippet_tokens=int(snippet_tokens), rowids=", ".join("?" * len(rowids)))
 	return dict(index.execute(sql, (match_query, *rowids)))
 
 
