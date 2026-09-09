@@ -218,7 +218,6 @@
 
 .docs-toc a:hover,
 .docs-toc a:focus {
-	color: var(--primary);
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
 }
