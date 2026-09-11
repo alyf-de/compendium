@@ -224,6 +224,26 @@
 }
 
 /* Desk sets a { color: text }, so markdown links need an explicit highlight. */
+.docs-copy-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	white-space: nowrap;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+ }
+
+ .docs-copy-button:hover {
+	background: var(--fg-hover-color, var(--gray-100));
+	color: var(--text-color);
+ }
+
+
 .docs-reading-pane a {
 	color: var(--primary);
 	text-decoration: underline;
@@ -421,6 +441,10 @@
 }
 
 .docs-page-footer {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--padding-md);
 	margin-top: var(--margin-xl);
 	padding-top: var(--padding-md);
 	border-top: 1px solid var(--border-color);
@@ -462,5 +486,12 @@
 		margin-top: var(--margin-md);
 		padding-top: var(--padding-sm);
 		border-top: 1px solid var(--border-color);
+	}
+}
+
+@media (min-width: 768px) {
+	.docs-page-footer {
+		flex-direction: row;
+		justify-content: space-between;
 	}
 }
