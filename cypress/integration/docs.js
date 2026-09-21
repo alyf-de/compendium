@@ -5,7 +5,7 @@ context("Documentation Browser", () => {
 
 	it("opens the docs page and loads the first accessible page", () => {
 		cy.visit("/desk/docs");
-		cy.location("pathname").should("match", /\/app\/docs\/[a-z]{2}(-[A-Z]{2})?/);
+		cy.location("pathname").should("match", /\/desk\/docs\/[a-z]{2}(-[A-Z]{2})?/);
 		cy.get(".docs-tree .docs-tree-node").should("have.length.at.least", 1);
 		cy.get(".docs-reading-pane").should("not.have.class", "hide");
 		cy.get(".docs-reading-pane").should("contain", "Compendium");
