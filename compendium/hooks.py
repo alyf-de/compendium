@@ -32,9 +32,7 @@ website_redirects = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/compendium/css/compendium.css"
-app_include_js = [
-	"/assets/compendium/js/breadcrumbs_polyfill.js",
-]
+app_include_js = ["compendium.bundle.js"]
 
 # Add Compendium to Desk Help dropdown on sites that use standard help items
 standard_help_items = [
