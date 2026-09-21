@@ -4,6 +4,7 @@
 import importlib.util
 import os
 import re
+import tomllib
 from collections import Counter
 from urllib.parse import quote, urlencode
 
@@ -593,14 +594,12 @@ def get_edit_url(page):
 @frappe.request_cache
 def get_app_pyproject(app):
 	"""Parsed pyproject.toml for an installed app, or an empty dict."""
-	from tomli import load
-
 	pyproject_path = os.path.join(os.path.dirname(get_app_path(app)), "pyproject.toml")
 	if not os.path.isfile(pyproject_path):
 		return {}
 
 	with open(pyproject_path, "rb") as f:
-		return load(f)
+		return tomllib.load(f)
 
 
 def get_app_repository_url(app):
