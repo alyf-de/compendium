@@ -95,6 +95,17 @@ context("Documentation Browser", () => {
 			.and("include", "github.com/alyf-de/compendium");
 	});
 
+	it("keeps the breadcrumbs when the locale is switched", () => {
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
+		cy.get(".navbar-breadcrumbs li").last().should("contain", "Authoring Guide");
+
+		cy.get("#docs-locale-select").select("de");
+
+		cy.location("pathname").should("eq", "/desk/docs/de/compendium/docs/authoring");
+		cy.get(".navbar-breadcrumbs li").first().should("contain", "Documentation");
+		cy.get(".navbar-breadcrumbs li").should("have.length.at.least", 2);
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/desk/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");

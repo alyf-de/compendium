@@ -171,8 +171,10 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			if (view.page || target_path == null || target_path === path) {
 				this.current_locale = locale;
 				this._ignore_next_show = true;
-				frappe.set_route(route);
-				this.apply_view(view);
+				// frappe.breadcrumbs keys every entry by the current route string, so
+				// rendering before the route lands files them under the old locale and
+				// the Desk then clears them. Render once the new route is current.
+				frappe.set_route(route).then(() => this.apply_view(view));
 				return;
 			}
 
