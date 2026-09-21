@@ -1,5 +1,19 @@
 frappe.provide("frappe.ui");
 
+// Title of the Workspace Sidebar this app ships.
+const SIDEBAR_TITLE = "Compendium";
+
+// v16 picks the Desk sidebar from the route, and a route into a Page resolves to
+// nothing — leaving the sidebar without its header, search or items. Point it at
+// the app's own sidebar. Guarded like frappe's own resolver, because setup()
+// rebuilds the whole sidebar and this runs on every docs navigation.
+function show_docs_sidebar() {
+	const sidebar = frappe.app.sidebar;
+	if (sidebar.sidebar_title !== SIDEBAR_TITLE) {
+		sidebar.setup(SIDEBAR_TITLE);
+	}
+}
+
 frappe.pages["docs"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -8,9 +22,20 @@ frappe.pages["docs"].on_page_load = function (wrapper) {
 	});
 
 	frappe.docs_browser = new frappe.ui.DocsBrowser({ page, wrapper });
+
+	// Arriving from a DocType route, frappe resolves the sidebar from a router.meta
+	// it never cleared, and lands on that DocType's sidebar after the page is shown.
+	// This handler is bound after frappe's, so it runs last and wins.
+	frappe.router.on("change", () => {
+		if (frappe.get_route()[0] === "docs") {
+			show_docs_sidebar();
+		}
+	});
 };
 
 frappe.pages["docs"].on_page_show = function () {
+	// On a direct load the route change happens before this file is loaded.
+	show_docs_sidebar();
 	frappe.docs_browser?.show();
 };
 

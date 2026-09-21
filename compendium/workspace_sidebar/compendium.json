@@ -1,0 +1,28 @@
+{
+ "app": "compendium",
+ "creation": "2026-09-21 22:44:03.679965",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "education",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "education",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Documentation",
+   "link_to": "docs",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-09-21 22:44:03.679965",
+ "modified_by": "Administrator",
+ "name": "Compendium",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Compendium"
+}

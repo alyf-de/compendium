@@ -106,6 +106,13 @@ context("Documentation Browser", () => {
 		cy.get(".navbar-breadcrumbs li").should("have.length.at.least", 2);
 	});
 
+	it("shows the Desk sidebar when a docs page is opened directly", () => {
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
+		cy.get('.body-sidebar[data-title="Compendium"]').should("exist");
+		cy.get(".body-sidebar .sidebar-header .header-title").should("contain", "Compendium");
+		cy.get(".body-sidebar #navbar-modal-search").should("exist");
+	});
+
 	it("shows not-found state for missing pages", () => {
 		cy.visit("/desk/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");
