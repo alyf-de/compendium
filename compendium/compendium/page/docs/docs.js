@@ -33,7 +33,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		// overlay-sidebar + hidden-xs/sm matches Desk list/form sidebars so the
 		// page toggle opens a drawer on small screens and can hide on desktop.
 		this.$sidebar = $(
-			'<div class="docs-sidebar overlay-sidebar hidden-xs hidden-sm"></div>'
+			'<div class="docs-sidebar overlay-sidebar hidden-xs hidden-sm"></div>',
 		).appendTo(this.page.sidebar);
 		this.$tree = $('<div class="docs-tree"></div>').appendTo(this.$sidebar);
 		this.$locale_picker = $(`
@@ -118,7 +118,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 		return frappe.xcall("compendium.docs.get_locales").then((locales) => {
 			this.locales = (locales || []).map((locale) =>
-				typeof locale === "string" ? { locale, label: locale } : locale
+				typeof locale === "string" ? { locale, label: locale } : locale,
 			);
 		});
 	}
@@ -254,7 +254,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			const $item = $(
 				`<div class="docs-tree-item" data-path="${escaped_path}" data-has-children="${
 					has_children ? "1" : "0"
-				}"></div>`
+				}"></div>`,
 			);
 			if (collapsed) {
 				$item.addClass("collapsed");
@@ -266,12 +266,12 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 					`<button type="button" class="docs-tree-toggle" aria-expanded="${
 						collapsed ? "false" : "true"
 					}" aria-label="${frappe.utils.escape_html(
-						__("Toggle {0}", [node.title])
-					)}">${frappe.utils.icon("right", "xs")}</button>`
+						__("Toggle {0}", [node.title]),
+					)}">${frappe.utils.icon("right", "xs")}</button>`,
 				).appendTo($row);
 			} else {
 				$('<span class="docs-tree-toggle-spacer" aria-hidden="true"></span>').appendTo(
-					$row
+					$row,
 				);
 			}
 
@@ -286,14 +286,14 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			$(
 				`<a class="${classes.join(" ")}" data-path="${escaped_path}" data-has-page="${
 					node.has_page ? "1" : "0"
-				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
+				}" href="#">${frappe.utils.escape_html(node.title)}</a>`,
 			).appendTo($row);
 
 			if (has_children) {
 				$item.append(
 					$('<div class="docs-tree-children"></div>').append(
-						this.render_tree_nodes(node.children)
-					)
+						this.render_tree_nodes(node.children),
+					),
 				);
 			}
 			$list.append($item);
@@ -429,13 +429,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			const label = __("Copy link");
 			$(heading).append(
 				`<button type="button" class="docs-heading-anchor" data-heading-id="${frappe.utils.escape_html(
-					id
+					id,
 				)}" aria-label="${frappe.utils.escape_html(
-					label
+					label,
 				)}" title="${frappe.utils.escape_html(label)}">${frappe.utils.icon(
 					"link-url",
-					"xs"
-				)}</button>`
+					"xs",
+				)}</button>`,
 			);
 		});
 	}
@@ -529,7 +529,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		$(
 			`<div class="docs-fallback-notice">${__("This page is only available in {0}.", [
 				label,
-			])}</div>`
+			])}</div>`,
 		).prependTo(this.$reading);
 	}
 
@@ -542,7 +542,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			parts.push(
 				roles.length === 1
 					? __("You can see this page because you have the role {0}.", [labels])
-					: __("You can see this page because you have the roles {0}.", [labels])
+					: __("You can see this page because you have the roles {0}.", [labels]),
 			);
 		}
 
@@ -550,8 +550,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			const label = frappe.utils.escape_html(__("Edit on GitHub"));
 			parts.push(
 				`<a class="docs-edit-link" href="${frappe.utils.escape_html(
-					doc.edit_url
-				)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+					doc.edit_url,
+				)}" target="_blank" rel="noopener noreferrer">${label}</a>`,
 			);
 		}
 
@@ -579,8 +579,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			.require("mermaid.bundle.js")
 			.then(() =>
 				this.ensure_mermaid().then(() =>
-					compendium.mermaid.run({ nodes, suppressErrors: true })
-				)
+					compendium.mermaid.run({ nodes, suppressErrors: true }),
+				),
 			);
 	}
 
@@ -644,7 +644,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 
 		this.$state_message.text(
-			__("Unable to load documentation page {0}", [path || __("Home")])
+			__("Unable to load documentation page {0}", [path || __("Home")]),
 		);
 	}
 

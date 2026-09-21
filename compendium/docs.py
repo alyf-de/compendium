@@ -378,7 +378,7 @@ def get_declared_canonical_language(app):
 		# frappe.get_hooks() prints and raises for an app it cannot import
 		if not importlib.util.find_spec(f"{app}.hooks"):
 			return None
-	except (ImportError, ValueError):
+	except ImportError, ValueError:
 		return None
 
 	declared = frappe.get_hooks("docs_canonical_language", app_name=app)

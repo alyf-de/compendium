@@ -24,14 +24,14 @@ context("Documentation Browser", () => {
 		// Active path ancestors are expanded; sibling groups stay collapsed.
 		cy.get('.docs-tree-item[data-path="compendium"]').should("not.have.class", "collapsed");
 		cy.get(
-			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle'
+			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle',
 		).click();
 		cy.get('.docs-tree-item[data-path="compendium"]').should("have.class", "collapsed");
 		cy.get('.docs-tree-item[data-path="compendium"] > .docs-tree-children').should(
-			"not.be.visible"
+			"not.be.visible",
 		);
 		cy.get(
-			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle'
+			'.docs-tree-item[data-path="compendium"] > .docs-tree-row .docs-tree-toggle',
 		).click();
 		cy.get('.docs-tree-item[data-path="compendium"]').should("not.have.class", "collapsed");
 	});
@@ -45,7 +45,7 @@ context("Documentation Browser", () => {
 		cy.visit("/app/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane pre code.hljs", { timeout: 15000 }).should(
 			"have.length.at.least",
-			1
+			1,
 		);
 	});
 
