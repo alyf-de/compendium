@@ -11,8 +11,8 @@ app_license = "mit"
 required_apps = ["frappe"]
 
 # Each item in the list will be shown as an app in the apps page
-# /compendium redirects to /app/docs — Frappe's apps picker rewrites unknown
-# /app/<name> routes to a workspace, so a Page route cannot be used directly.
+# /compendium redirects to /desk/docs — Frappe's apps picker rewrites unknown
+# /desk/<name> routes to a workspace, so a Page route cannot be used directly.
 add_to_apps_screen = [
 	{
 		"name": "compendium",
@@ -24,7 +24,7 @@ add_to_apps_screen = [
 ]
 
 website_redirects = [
-	{"source": "/compendium", "target": "/app/docs"},
+	{"source": "/compendium", "target": "/desk/docs"},
 ]
 
 # Includes in <head>
@@ -41,7 +41,7 @@ standard_help_items = [
 	{
 		"item_label": "Compendium",
 		"item_type": "Route",
-		"route": "/app/docs",
+		"route": "/desk/docs",
 		"is_standard": 1,
 	},
 ]

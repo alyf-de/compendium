@@ -39,7 +39,7 @@ class TestSearch(FrappeTestCase):
 
 		self.assertEqual(len(results), 1)
 		self.assertEqual(results[0]["label"], "Setup Guide")
-		self.assertEqual(results[0]["route"], "/app/docs/en/guides/setup")
+		self.assertEqual(results[0]["route"], "/desk/docs/en/guides/setup")
 		self.assertEqual(results[0]["index"], 50)
 
 	def test_matches_path(self):
@@ -50,7 +50,7 @@ class TestSearch(FrappeTestCase):
 		):
 			results = awesomebar_results("guides")
 
-		self.assertEqual(results[0]["route"], "/app/docs/en/guides/setup")
+		self.assertEqual(results[0]["route"], "/desk/docs/en/guides/setup")
 
 	def test_matches_body_content(self):
 		with DocsTestEnvironment(
@@ -116,7 +116,7 @@ class TestSearch(FrappeTestCase):
 		with DocsTestEnvironment({"en/index.md": "---\ntitle: Home\n---\n# Home"}):
 			results = awesomebar_results("home")
 
-		self.assertEqual(results[0]["route"], "/app/docs/en")
+		self.assertEqual(results[0]["route"], "/desk/docs/en")
 
 	def test_skips_unpermitted_pages(self):
 		with DocsTestEnvironment(

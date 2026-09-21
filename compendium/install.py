@@ -2,7 +2,7 @@ import frappe
 
 from compendium.permissions import CONTRIBUTOR_ROLE
 
-DOCUMENTATION_ROUTE = "/app/docs"
+DOCUMENTATION_ROUTE = "/desk/docs"
 COMPENDIUM_LABEL = "Compendium"
 
 

@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 compendium.patches.update_documentation_menu_label
 compendium.patches.create_compendium_contributor_role
+compendium.patches.update_documentation_route

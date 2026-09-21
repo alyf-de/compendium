@@ -4,7 +4,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("opens the docs page and loads the first accessible page", () => {
-		cy.visit("/app/docs");
+		cy.visit("/desk/docs");
 		cy.location("pathname").should("match", /\/app\/docs\/[a-z]{2}(-[A-Z]{2})?/);
 		cy.get(".docs-tree .docs-tree-node").should("have.length.at.least", 1);
 		cy.get(".docs-reading-pane").should("not.have.class", "hide");
@@ -12,7 +12,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("navigates nested documentation routes", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get('.docs-tree-node.active[data-path="compendium/docs/authoring"]').should("exist");
 		cy.get(".docs-reading-pane").contains("Authoring Guide");
 		cy.get(".navbar-breadcrumbs li").first().should("contain", "Documentation");
@@ -20,7 +20,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("collapses and expands sidebar groups", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		// Active path ancestors are expanded; sibling groups stay collapsed.
 		cy.get('.docs-tree-item[data-path="compendium"]').should("not.have.class", "collapsed");
 		cy.get(
@@ -37,12 +37,12 @@ context("Documentation Browser", () => {
 	});
 
 	it("renders mermaid diagrams from fenced blocks", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
 	});
 
 	it("highlights fenced code blocks", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane pre code.hljs", { timeout: 15000 }).should(
 			"have.length.at.least",
 			1,
@@ -50,7 +50,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("shows which of the user's roles grant access", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get(".docs-page-footer").should("contain", "System Manager");
 		cy.get(".docs-page-footer").should("contain", "because you have");
 	});
@@ -58,7 +58,7 @@ context("Documentation Browser", () => {
 	it("renders a TOC and follows heading deep links", () => {
 		cy.viewport(1280, 720);
 		// Heading after a Mermaid block: scroll must wait for SVG layout.
-		cy.visit("/app/docs/en/compendium/docs/authoring#code-blocks");
+		cy.visit("/desk/docs/en/compendium/docs/authoring#code-blocks");
 		cy.get(".docs-toc-pane").should("be.visible");
 		cy.get('.docs-toc-pane a[href="#code-blocks"]').should("exist");
 		cy.location("hash").should("eq", "#code-blocks");
@@ -72,13 +72,13 @@ context("Documentation Browser", () => {
 		});
 
 		cy.get('.docs-toc-pane a[href="#mermaid-diagrams"]').click();
-		cy.location("pathname").should("eq", "/app/docs/en/compendium/docs/authoring");
+		cy.location("pathname").should("eq", "/desk/docs/en/compendium/docs/authoring");
 		cy.location("hash").should("eq", "#mermaid-diagrams");
 		cy.get(".docs-reading-pane h2#mermaid-diagrams").should("be.visible");
 	});
 
 	it("copies a heading deep link from the muted link icon", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.window().then((win) => {
 			cy.stub(win.navigator.clipboard, "writeText").as("clipboardWrite").resolves();
 		});
@@ -87,7 +87,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("shows Edit on GitHub for Administrator when repository is set", () => {
-		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get(".docs-page-footer .docs-edit-link")
 			.should("be.visible")
 			.and("contain", "Edit on GitHub")
@@ -96,7 +96,7 @@ context("Documentation Browser", () => {
 	});
 
 	it("shows not-found state for missing pages", () => {
-		cy.visit("/app/docs/en/does-not-exist-page");
+		cy.visit("/desk/docs/en/does-not-exist-page");
 		cy.get(".docs-state").should("not.have.class", "hide");
 		cy.get(".docs-reading-pane").should("have.class", "hide");
 		cy.get(".docs-state-content").should("contain", "could not find");

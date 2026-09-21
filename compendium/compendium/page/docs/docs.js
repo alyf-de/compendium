@@ -77,7 +77,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			this.navigate_to(path);
 		});
 
-		// Desk treats href="#…" as v1 routes (/app/%23…). Keep in-page anchors local.
+		// Desk treats href="#…" as v1 routes (/desk/%23…). Keep in-page anchors local.
 		this.$content.on("click", 'a[href^="#"]', (event) => {
 			this.follow_in_page_anchor(event);
 		});
@@ -663,7 +663,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	get_docs_route(path) {
-		const route = `/app/docs/${this.current_locale}`;
+		const route = `/desk/docs/${this.current_locale}`;
 		return path ? `${route}/${path}` : route;
 	}
 

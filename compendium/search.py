@@ -42,7 +42,7 @@ def awesomebar_results(txt):
 	results = []
 
 	for path, title, snippet in search(locale, match_query):
-		route = f"/app/docs/{locale}/{path}" if path else f"/app/docs/{locale}"
+		route = f"/desk/docs/{locale}/{path}" if path else f"/desk/docs/{locale}"
 		results.append(
 			{
 				"label": title,
