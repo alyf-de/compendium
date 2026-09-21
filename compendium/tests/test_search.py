@@ -2,13 +2,13 @@ import os
 from unittest.mock import patch
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from compendium.search import awesomebar_results, get_index
 from compendium.tests.test_docs import DocsTestEnvironment
 
 
-class TestSearch(FrappeTestCase):
+class TestSearch(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.local.lang = "en"

@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe import _
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 
 from compendium.docs import (
 	build_navigation_tree,
@@ -26,7 +26,7 @@ from compendium.docs import (
 )
 
 
-class TestDocs(FrappeTestCase):
+class TestDocs(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		# discover_raw_pages is request-cached; clear so patched apps/paths take effect
