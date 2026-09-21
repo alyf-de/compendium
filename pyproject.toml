@@ -4,11 +4,11 @@ authors = [
     { name = "ALYF GmbH", email = "hallo@alyf.de"}
 ]
 description = "Serves docs provided by your frappe apps."
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    # "frappe~=15.0.0" # Installed and managed by bench.
+    # "frappe~=16.0.0" # Installed and managed by bench.
 ]
 
 [project.urls]
@@ -16,14 +16,14 @@ Homepage = "https://github.com/alyf-de/compendium"
 Repository = "https://github.com/alyf-de/compendium.git"
 
 [tool.compendium]
-docs_branch = "version-15"
+docs_branch = "version-16"
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.bench.frappe-dependencies]
-frappe = ">=15.0.0,<16.0.0"
+frappe = ">=16.0.0,<17.0.0"
 
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
@@ -35,7 +35,7 @@ frappe = ">=15.0.0,<16.0.0"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
