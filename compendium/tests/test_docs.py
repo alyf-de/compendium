@@ -747,8 +747,9 @@ class TestDocs(FrappeTestCase):
 
 
 class DocsTestEnvironment:
-	def __init__(self, files, repository=None, docs_branch=None):
+	def __init__(self, files, repository=None, docs_branch=None, db_pages=False):
 		self.files = files
+		self.db_pages = db_pages
 		self.repository = repository
 		self.docs_branch = docs_branch
 		self.tmpdir = None
@@ -782,6 +783,9 @@ class DocsTestEnvironment:
 			patch("compendium.docs.get_installed_apps", return_value=["frappe"]),
 			patch("compendium.docs.get_app_path", return_value=app_root),
 		]
+		if not self.db_pages:
+			# keep the site's own Compendium Pages out of file-based tests
+			self._patches.append(patch("compendium.docs.get_compendium_pages", return_value=[]))
 		for patcher in self._patches:
 			patcher.start()
 		if hasattr(frappe.local, "request_cache"):

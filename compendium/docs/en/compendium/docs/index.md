@@ -16,6 +16,7 @@ Compendium lets Frappe apps ship user documentation as Markdown files under a `d
 - Optional frontmatter keys: `title`, `order`, `roles`
 - Omit `roles` to allow all **Desk User** accounts
 - Later installed apps override pages at the same logical path
+- Pages written in Desk come on top of all apps — see [Writing Pages in Desk](/app/docs/compendium/docs/desk-pages)
 
 See [Getting Started](/app/docs/en/compendium/docs/getting-started) for a walkthrough,
 or [Search](/app/docs/en/compendium/docs/search) to find a page from the Awesome Bar.

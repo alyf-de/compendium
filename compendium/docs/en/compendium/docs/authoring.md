@@ -68,6 +68,13 @@ path. Child paths continue to merge independently.
 For translations, a localized variant applies only when it comes from the app
 that owns the canonical page or a later installed app.
 
+## Pages in Desk
+
+Pages can also be written in Desk instead of shipped as files. They come after
+all installed apps, so a page at the same logical path replaces the app's page.
+Localized pages follow the same canonical-language rules as files. See
+[Writing Pages in Desk](/app/docs/compendium/docs/desk-pages).
+
 ## Images and assets
 
 Reference images with relative paths in Markdown. Compendium serves them through

@@ -88,6 +88,11 @@
 	display: none;
 }
 
+.docs-new-page {
+	flex: 0 0 auto;
+	margin: var(--margin-sm);
+}
+
 .docs-locale-picker.hide {
 	display: none;
 }

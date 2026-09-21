@@ -70,6 +70,14 @@ logischem Pfad. Untergeordnete Pfade werden weiterhin unabhängig zusammengefüh
 Eine Übersetzung greift nur, wenn sie aus der App stammt, der die kanonische Seite
 gehört, oder aus einer später installierten App.
 
+## Seiten in Desk
+
+Seiten lassen sich auch in Desk schreiben, statt sie als Dateien auszuliefern.
+Sie kommen nach allen installierten Apps, eine Seite mit gleichem logischem Pfad
+ersetzt also die Seite der App. Übersetzte Seiten folgen denselben Regeln zur
+kanonischen Sprache wie Dateien. Siehe
+[Seiten in Desk schreiben](/app/docs/compendium/docs/desk-pages).
+
 ## Bilder und Assets
 
 Verweisen Sie im Markdown mit relativen Pfaden auf Bilder. Compendium liefert sie

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Compendium VERSION\n"
 "Report-Msgid-Bugs-To: hallo@alyf.de\n"
-"POT-Creation-Date: 2026-08-12 18:42+0053\n"
+"POT-Creation-Date: 2026-09-21 13:38+0053\n"
 "PO-Revision-Date: 2026-08-12 18:40+0053\n"
 "Last-Translator: hallo@alyf.de\n"
 "Language: de\n"
@@ -24,63 +24,105 @@ msgstr ""
 msgid "Compendium"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:443
+#. Name of a role
+#: compendium/compendium/doctype/compendium_page/compendium_page.json
+msgid "Compendium Contributor"
+msgstr ""
+
+#. Name of a DocType
+#: compendium/compendium/doctype/compendium_page/compendium_page.json
+msgid "Compendium Page"
+msgstr ""
+
+#. Name of a DocType
+#: compendium/compendium/doctype/compendium_page_role/compendium_page_role.json
+msgid "Compendium Page Role"
+msgstr ""
+
+#: compendium/compendium/page/docs/docs.js:440
 msgid "Copy link"
 msgstr "Link kopieren"
 
-#: compendium/docs.py:734
+#: compendium/docs.py:861 compendium/docs.py:878
 msgid "Documentation asset not found"
 msgstr "Dokumentationsressource nicht gefunden"
 
-#: compendium/docs.py:524
+#: compendium/docs.py:578
 msgid "Documentation page not found"
 msgstr "Dokumentationsseite nicht gefunden"
 
-#: compendium/compendium/page/docs/docs.js:432
+#: compendium/compendium/page/docs/docs.js:569
 msgid "Edit on GitHub"
 msgstr "Auf GitHub bearbeiten"
 
-#: compendium/docs.py:731 compendium/docs.py:741 compendium/docs.py:745
+#. Description of the 'Path' (Data) field in DocType 'Compendium Page'
+#: compendium/compendium/doctype/compendium_page/compendium_page.json
+msgid "Filled from the title when empty. Use slashes to nest pages, e.g. guides/setup. A page at the path of an app page replaces it."
+msgstr "Wird aus dem Titel gefüllt, wenn leer. Seiten lassen sich mit Schrägstrichen verschachteln, z. B. guides/setup. Eine Seite mit dem Pfad einer App-Seite ersetzt diese."
+
+#: compendium/docs.py:858 compendium/docs.py:885 compendium/docs.py:889
 msgid "Invalid asset path"
 msgstr "Ungültiger Ressourcenpfad"
 
-#: compendium/docs.py:454
+#: compendium/docs.py:508
 msgid "Invalid documentation locale"
 msgstr "Ungültige Dokumentationssprache"
 
-#: compendium/docs.py:514
+#: compendium/docs.py:568
 msgid "Invalid documentation path"
 msgstr "Ungültiger Dokumentationspfad"
 
-#: compendium/compendium/page/docs/docs.js:623
+#: compendium/compendium/page/docs/docs.js:41
+msgid "New Page"
+msgstr "Neue Seite"
+
+#: compendium/compendium/page/docs/docs.js:644
 msgid "No documentation is available for your account."
 msgstr "Für Ihr Konto ist keine Dokumentation verfügbar."
 
-#: compendium/docs.py:527
+#: compendium/docs.py:581
 msgid "No read permission for documentation page {0}"
 msgstr "Keine Leseberechtigung für Dokumentationsseite {0}"
 
-#: compendium/compendium/page/docs/docs.js:52
+#: compendium/compendium/page/docs/docs.js:63
 msgid "On this page"
 msgstr "Auf dieser Seite"
 
-#: compendium/compendium/page/docs/docs.js:544
+#: compendium/compendium/doctype/compendium_page/compendium_page.py:17
+msgid "Please set a path for this page"
+msgstr "Bitte legen Sie einen Pfad für diese Seite fest"
+
+#: compendium/compendium/doctype/compendium_page/compendium_page.js:13
+msgid "Save the page before adding images."
+msgstr "Speichern Sie die Seite, bevor Sie Bilder hinzufügen."
+
+#: compendium/compendium/page/docs/docs.js:541
 msgid "This page is only available in {0}."
 msgstr "Diese Seite ist nur auf {0} verfügbar."
 
-#: compendium/compendium/page/docs/docs.js:269
+#: compendium/compendium/page/docs/docs.js:280
 msgid "Toggle {0}"
 msgstr "{0} umschalten"
 
-#: compendium/compendium/page/docs/docs.js:647
+#: compendium/compendium/page/docs/docs.js:666
 msgid "Unable to load documentation page {0}"
 msgstr "Dokumentationsseite {0} konnte nicht geladen werden"
 
-#: compendium/compendium/page/docs/docs.js:558
+#. Description of the 'Roles' (Table MultiSelect) field in DocType 'Compendium
+#. Page'
+#: compendium/compendium/doctype/compendium_page/compendium_page.json
+msgid "Who can read the page. Empty means Desk User. Ignored for a translation: it takes the roles of the page in the canonical language (English where one exists)."
+msgstr "Wer die Seite lesen darf. Leer bedeutet Desk User. Wird bei einer Übersetzung ignoriert: Sie übernimmt die Rollen der Seite in der kanonischen Sprache (Englisch, sofern vorhanden)."
+
+#: compendium/compendium/page/docs/docs.js:555
 msgid "You can see this page because you have the role {0}."
 msgstr "Sie können diese Seite sehen, weil Sie die Rolle {0} haben."
 
-#: compendium/compendium/page/docs/docs.js:559
+#: compendium/compendium/page/docs/docs.js:556
 msgid "You can see this page because you have the roles {0}."
 msgstr "Sie können diese Seite sehen, weil Sie die Rollen {0} haben."
+
+#: compendium/compendium/doctype/compendium_page/compendium_page.py:24
+msgid "{0} already documents the path {1} in this language"
+msgstr "{0} dokumentiert den Pfad {1} bereits in dieser Sprache"
 

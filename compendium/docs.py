@@ -5,7 +5,7 @@ import importlib.util
 import os
 import re
 from collections import Counter
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, unquote, urlencode
 
 import frappe
 from frappe import _
@@ -17,10 +17,14 @@ from frappe.website.utils import extract_title, get_frontmatter
 from compendium.permissions import CONTRIBUTOR_ROLE
 
 DOCS_FOLDER = "docs"
+PAGE_DOCTYPE = "Compendium Page"
 DEFAULT_LANG = "en"
 DEFAULT_ROLE = "Desk User"
 ALLOWED_FRONTMATTER_KEYS = ("title", "order", "roles")
 IMAGE_SRC_PATTERN = re.compile(r'(<img[^>]+src=["\'])([^"\']+)(["\'])', re.IGNORECASE)
+PRIVATE_FILE_PATTERN = re.compile(
+	r'(<(?:img|a)\b[^>]+(?:src|href)=["\'])(/private/files/[^"\']+)(["\'])', re.IGNORECASE
+)
 GITHUB_ALERT_MARKER = re.compile(r"^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*", re.IGNORECASE)
 GITHUB_ALERTS = {
 	"NOTE": ("Note", "info"),
@@ -106,7 +110,7 @@ def get_view(path: str = "", locale: str | None = None, resolve_first: int | boo
 
 
 def build_page_payload(page, locale):
-	content = render_page_content(page.body, page.path, locale)
+	content = render_page_content(page.body, page.path, locale, is_db_page=bool(page.name))
 	user_roles = set(get_user_roles())
 	matching_roles = [role for role in page.roles if role in user_roles]
 	return {
@@ -120,6 +124,7 @@ def build_page_payload(page, locale):
 		"toc_html": render_toc(page.body),
 		"roles": [_(role) for role in matching_roles],
 		"edit_url": get_edit_url(page),
+		"edit_route": get_edit_route(page),
 	}
 
 
@@ -208,7 +213,10 @@ def get_asset(page_path: str, asset_path: str, locale: str | None = None):
 	"""Serve a documentation asset after verifying access to the referring page."""
 	locale = normalize_locale(locale)
 	page = get_page_record(normalize_path(page_path), locale=locale, check_permission=True)
-	asset_file = resolve_asset_path(page, asset_path)
+	if page.name:
+		asset_file = get_attached_file(page, asset_path).get_full_path()
+	else:
+		asset_file = resolve_asset_path(page, asset_path)
 
 	with open(asset_file, "rb") as f:
 		content = f.read()
@@ -281,7 +289,41 @@ def discover_raw_pages():
 				page.app_index = app_index
 				pages[(language, logical_path)] = page
 
+	# Pages written in Desk are the last layer, so a site can override what its apps ship.
+	for page in get_compendium_pages():
+		page.app_index = len(get_installed_apps())
+		pages[(page.language, page.path)] = page
+
 	return pages
+
+
+def get_compendium_pages():
+	"""Published Compendium Pages as page records."""
+	roles = {}
+	for row in frappe.get_all(
+		"Compendium Page Role", filters={"parenttype": PAGE_DOCTYPE}, fields=["parent", "role"]
+	):
+		roles.setdefault(row.parent, []).append(row.role)
+
+	return [
+		frappe._dict(
+			{
+				"name": record.name,
+				"path": record.path,
+				"title": record.title,
+				"order": cint(record.order),
+				"roles": roles.get(record.name) or [DEFAULT_ROLE],
+				"body": record.content or "",
+				"language": record.language,
+				"app": PAGE_DOCTYPE,
+			}
+		)
+		for record in frappe.get_all(
+			PAGE_DOCTYPE,
+			filters={"published": 1},
+			fields=["name", "path", "title", "order", "content", "language"],
+		)
+	]
 
 
 def compose_pages(raw_pages, locale):
@@ -409,6 +451,7 @@ def get_first_page_path(pages):
 def merge_translated_page(canonical, localized):
 	return frappe._dict(
 		{
+			"name": localized.name,
 			"path": canonical.path,
 			"title": localized.title,
 			"order": canonical.order,
@@ -562,7 +605,7 @@ def can_edit_on_github():
 
 def get_edit_url(page):
 	"""GitHub edit URL for the Markdown file currently rendered, or None."""
-	if not can_edit_on_github():
+	if page.name or not can_edit_on_github():
 		return None
 
 	repository = get_app_repository_url(page.app)
@@ -588,6 +631,14 @@ def get_edit_url(page):
 	# Branch names may contain slashes (e.g. feat/foo); encode so GitHub can
 	# tell the ref apart from the file path.
 	return f"https://github.com/{owner}/{repo}/edit/{quote(branch, safe='')}/{relative_path}"
+
+
+def get_edit_route(page):
+	"""Desk route of the Compendium Page currently rendered, for users who may edit it."""
+	if not page.name or not frappe.has_permission(PAGE_DOCTYPE, "write", page.name):
+		return None
+
+	return f"/app/compendium-page/{quote(page.name)}"
 
 
 @frappe.request_cache
@@ -690,10 +741,13 @@ def sort_tree_nodes(nodes):
 		sort_tree_nodes(node["children"])
 
 
-def render_page_content(body, page_path="", locale=None):
+def render_page_content(body, page_path="", locale=None, is_db_page=False):
 	html = frappe.utils.md_to_html(body or "")
 	content = apply_github_alerts(str(html))
 	content = sanitize_html(content, linkify=True)
+	if is_db_page:
+		# readers cannot open the page's private attachments directly; get_asset serves them
+		return rewrite_private_file_urls(content, page_path, locale)
 	return rewrite_asset_urls(content, page_path, locale)
 
 
@@ -768,6 +822,14 @@ def rewrite_asset_urls(html, page_path, locale=None):
 	return IMAGE_SRC_PATTERN.sub(replace, html or "")
 
 
+def rewrite_private_file_urls(html, page_path, locale=None):
+	def replace(match):
+		prefix, url, suffix = match.groups()
+		return f"{prefix}{get_asset_url(page_path, url, locale)}{suffix}"
+
+	return PRIVATE_FILE_PATTERN.sub(replace, html or "")
+
+
 def get_asset_url(page_path, asset_path, locale=None):
 	query = urlencode(
 		{
@@ -799,6 +861,23 @@ def resolve_asset_path(page, asset_path):
 		frappe.throw(_("Documentation asset not found"), frappe.DoesNotExistError)
 
 	return asset_file
+
+
+def get_attached_file(page, file_url):
+	"""A file attached to the Compendium Page. Any other file is refused, so an author
+	cannot expose a private file from elsewhere on the site to the page's readers."""
+	name = frappe.db.get_value(
+		"File",
+		{
+			"file_url": unquote(file_url),
+			"attached_to_doctype": PAGE_DOCTYPE,
+			"attached_to_name": page.name,
+		},
+	)
+	if not name:
+		frappe.throw(_("Documentation asset not found"), frappe.DoesNotExistError)
+
+	return frappe.get_doc("File", name)
 
 
 def normalize_asset_path(asset_path):

@@ -11,7 +11,7 @@ from frappe import _
 from frappe.utils import escape_html
 
 from compendium import docs
-from compendium.docs import DEFAULT_LANG, DOCS_FOLDER, is_permitted, normalize_locale
+from compendium.docs import DEFAULT_LANG, DOCS_FOLDER, PAGE_DOCTYPE, is_permitted, normalize_locale
 
 RESULT_LIMIT = 20
 TOKEN_PATTERN = re.compile(r"\w+")
@@ -133,11 +133,13 @@ def build_index(locale):
 
 @frappe.request_cache
 def get_docs_fingerprint():
-	"""Staleness check for the index: every Markdown file with its mtime and size.
+	"""Staleness check for the index: every Markdown file with its mtime and size, plus
+	the count and newest change of the Compendium Pages.
 
 	Stat-only, so it costs a fraction of the reading and parsing an index build does.
 	A file count and a newest mtime would be cheaper but would miss a deployment that
 	restores the timestamps it found, leaving an edited page unsearchable until restart.
+	Records carry no such risk: every save moves `modified`, every delete the count.
 	"""
 	stamps = []
 
@@ -152,7 +154,8 @@ def get_docs_fingerprint():
 				stat = os.stat(filepath)
 				stamps.append((filepath, stat.st_mtime_ns, stat.st_size))
 
-	return tuple(sorted(stamps))
+	pages = frappe.get_all(PAGE_DOCTYPE, fields=["count(name) as count", "max(modified) as modified"])[0]
+	return (*sorted(stamps), (pages.count, str(pages.modified)))
 
 
 def to_plain_text(markdown):

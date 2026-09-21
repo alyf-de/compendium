@@ -36,6 +36,17 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			'<div class="docs-sidebar overlay-sidebar hidden-xs hidden-sm"></div>'
 		).appendTo(this.page.sidebar);
 		this.$tree = $('<div class="docs-tree"></div>').appendTo(this.$sidebar);
+		if (frappe.model.can_create("Compendium Page")) {
+			$(
+				`<button type="button" class="btn btn-default btn-sm docs-new-page">${frappe.utils.escape_html(
+					__("New Page")
+				)}</button>`
+			)
+				.on("click", () =>
+					frappe.new_doc("Compendium Page", { language: this.current_locale })
+				)
+				.appendTo(this.$sidebar);
+		}
 		this.$locale_picker = $(`
 			<div class="docs-locale-picker">
 				<label class="docs-locale-label" for="docs-locale-select">${__("Language")}</label>
@@ -543,6 +554,14 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				roles.length === 1
 					? __("You can see this page because you have the role {0}.", [labels])
 					: __("You can see this page because you have the roles {0}.", [labels])
+			);
+		}
+
+		if (doc.edit_route) {
+			parts.push(
+				`<a class="docs-edit-link" href="${frappe.utils.escape_html(
+					doc.edit_route
+				)}">${frappe.utils.escape_html(__("Edit"))}</a>`
 			);
 		}
 

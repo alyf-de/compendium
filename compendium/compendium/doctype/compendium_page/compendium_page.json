@@ -1,0 +1,115 @@
+{
+ "actions": [],
+ "creation": "2026-09-21 13:07:20.055891",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "roles",
+  "order",
+  "column_break_dmvv",
+  "language",
+  "path",
+  "published",
+  "section_break_jnxq",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Markdown Editor",
+   "ignore_xss_filter": 1,
+   "label": "Content"
+  },
+  {
+   "description": "Who can read the page. Empty means Desk User. Ignored for a translation: it takes the roles of the page in the canonical language (English where one exists).",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Compendium Page Role"
+  },
+  {
+   "fieldname": "order",
+   "fieldtype": "Int",
+   "label": "Sort Order"
+  },
+  {
+   "description": "Filled from the title when empty. Use slashes to nest pages, e.g. guides/setup. A page at the path of an app page replaces it.",
+   "fieldname": "path",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Path"
+  },
+  {
+   "default": "1",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Published"
+  },
+  {
+   "fieldname": "column_break_dmvv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Language",
+   "options": "Language",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_jnxq",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2026-09-21 14:17:24.768175",
+ "modified_by": "Administrator",
+ "module": "Compendium",
+ "name": "Compendium Page",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Compendium Contributor",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}
