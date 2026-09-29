@@ -86,13 +86,27 @@ context("Documentation Browser", () => {
 		cy.get("@clipboardWrite").should("have.been.calledWithMatch", /#code-blocks$/);
 	});
 
-	it("shows Edit on GitHub for Administrator when repository is set", () => {
-		cy.visit("/desk/docs/en/compendium/docs/authoring");
-		cy.get(".docs-page-footer .docs-edit-link")
-			.should("be.visible")
-			.and("contain", "Edit on GitHub")
-			.and("have.attr", "href")
-			.and("include", "github.com/alyf-de/compendium");
+	it("offers override or Edit on GitHub for an app page", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.window().then((win) => {
+			cy.stub(win, "open").as("windowOpen");
+		});
+		cy.get(".docs-page-footer .docs-edit-button").click();
+		cy.get(".modal:visible").should("contain", "Override with Compendium Page");
+		cy.get(".modal:visible .btn-secondary").should("contain", "Edit on GitHub").click();
+		cy.get("@windowOpen").should(
+			"have.been.calledWithMatch",
+			/github\.com\/alyf-de\/compendium\/edit\//,
+		);
+	});
+
+	it("shows Add new Page below the tree and a + on groups", () => {
+		cy.visit("/app/docs/en/compendium/docs/authoring");
+		cy.get(".docs-tree > .docs-tree-add").should("contain", "Add new Page");
+		cy.get(".docs-tree-list .docs-tree-add").should("not.exist");
+		cy.get('.docs-tree-item[data-has-children="1"] > .docs-tree-row > .docs-tree-add-child')
+			.first()
+			.should("exist");
 	});
 
 	it("keeps the breadcrumbs when the locale is switched", () => {
