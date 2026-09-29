@@ -34,5 +34,6 @@ The results only contain pages that you are allowed to open. A page that is
 restricted with `roles` stays hidden for all other users.
 
 > [!NOTE]
-> The index updates itself when a Markdown file changes. After you edit a page,
-> search again to see the new content. A restart is not needed.
+> The index updates itself when a Markdown file changes or a page written in
+> Desk is saved or deleted. After you edit a page, search again to see the new
+> content. A restart is not needed.
