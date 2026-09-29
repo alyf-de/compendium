@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Compendium VERSION\n"
 "Report-Msgid-Bugs-To: hallo@alyf.de\n"
-"POT-Creation-Date: 2026-09-21 13:38+0053\n"
-"PO-Revision-Date: 2026-09-21 13:38+0053\n"
+"POT-Creation-Date: 2026-09-29 22:43+0053\n"
+"PO-Revision-Date: 2026-09-29 22:43+0053\n"
 "Last-Translator: hallo@alyf.de\n"
 "Language-Team: hallo@alyf.de\n"
 "MIME-Version: 1.0\n"
@@ -37,19 +37,23 @@ msgstr ""
 msgid "Compendium Page Role"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:440
+#: compendium/compendium/page/docs/docs.js:583
+msgid "Copy as Markdown"
+msgstr ""
+
+#: compendium/compendium/page/docs/docs.js:446
 msgid "Copy link"
 msgstr ""
 
-#: compendium/docs.py:861 compendium/docs.py:878
+#: compendium/docs.py:862 compendium/docs.py:879
 msgid "Documentation asset not found"
 msgstr ""
 
-#: compendium/docs.py:578
+#: compendium/docs.py:579
 msgid "Documentation page not found"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:569
+#: compendium/compendium/page/docs/docs.js:575
 msgid "Edit on GitHub"
 msgstr ""
 
@@ -58,27 +62,27 @@ msgstr ""
 msgid "Filled from the title when empty. Use slashes to nest pages, e.g. guides/setup. A page at the path of an app page replaces it."
 msgstr ""
 
-#: compendium/docs.py:858 compendium/docs.py:885 compendium/docs.py:889
+#: compendium/docs.py:859 compendium/docs.py:886 compendium/docs.py:890
 msgid "Invalid asset path"
 msgstr ""
 
-#: compendium/docs.py:508
+#: compendium/docs.py:509
 msgid "Invalid documentation locale"
 msgstr ""
 
-#: compendium/docs.py:568
+#: compendium/docs.py:569
 msgid "Invalid documentation path"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:41
+#: compendium/compendium/page/docs/docs.js:42
 msgid "New Page"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:644
+#: compendium/compendium/page/docs/docs.js:656
 msgid "No documentation is available for your account."
 msgstr ""
 
-#: compendium/docs.py:581
+#: compendium/docs.py:582
 msgid "No read permission for documentation page {0}"
 msgstr ""
 
@@ -94,15 +98,15 @@ msgstr ""
 msgid "Save the page before adding images."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:541
+#: compendium/compendium/page/docs/docs.js:547
 msgid "This page is only available in {0}."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:280
+#: compendium/compendium/page/docs/docs.js:285
 msgid "Toggle {0}"
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:666
+#: compendium/compendium/page/docs/docs.js:678
 msgid "Unable to load documentation page {0}"
 msgstr ""
 
@@ -112,11 +116,11 @@ msgstr ""
 msgid "Who can read the page. Empty means Desk User. Ignored for a translation: it takes the roles of the page in the canonical language (English where one exists)."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:555
+#: compendium/compendium/page/docs/docs.js:561
 msgid "You can see this page because you have the role {0}."
 msgstr ""
 
-#: compendium/compendium/page/docs/docs.js:556
+#: compendium/compendium/page/docs/docs.js:562
 msgid "You can see this page because you have the roles {0}."
 msgstr ""
 
