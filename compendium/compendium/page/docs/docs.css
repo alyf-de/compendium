@@ -169,16 +169,68 @@
 	font-weight: 600;
 }
 
-.docs-tree-node.disabled {
-	color: var(--text-muted);
-}
-
 .docs-tree-children {
 	padding-left: var(--padding-md);
 }
 
 .docs-tree-item.collapsed > .docs-tree-children {
 	display: none;
+}
+
+/* Contributors: a "+" on group rows, shown on hover or keyboard focus. */
+.docs-tree-add-child {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin-right: var(--margin-xs);
+	padding: 0;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background: var(--card-bg, var(--bg-color));
+	color: var(--text-muted);
+	--icon-stroke: currentColor;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.docs-tree-row:hover > .docs-tree-add-child,
+.docs-tree-add-child:focus-visible {
+	opacity: 1;
+}
+
+.docs-tree-add-child:hover {
+	border-color: var(--gray-400, var(--border-color));
+	color: var(--text-color);
+}
+
+/* Slim placeholder row at the end of the tree, for contributors. */
+.docs-tree-add {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-xs);
+	padding: 2px var(--padding-sm) 2px 0;
+	border-radius: var(--border-radius);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	text-decoration: none;
+	opacity: 0.6;
+}
+
+.docs-tree-add .docs-tree-toggle-spacer {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.docs-tree-add:hover,
+.docs-tree-add:focus-visible {
+	color: var(--text-color);
+	text-decoration: none;
+	opacity: 1;
 }
 
 .docs-reading-pane {
@@ -223,7 +275,13 @@
 	text-underline-offset: 0.15em;
 }
 
-.docs-copy-button {
+.docs-page-footer-actions {
+	display: flex;
+	gap: var(--margin-xs);
+	margin-left: auto;
+}
+
+.docs-footer-button {
 	display: inline-flex;
 	align-items: center;
 	white-space: nowrap;
@@ -236,22 +294,22 @@
 	font-size: 0.75rem;
 }
 
-.docs-copy-button:hover,
-.docs-copy-button:focus-visible {
+.docs-footer-button:hover,
+.docs-footer-button:focus-visible {
 	background: var(--fg-hover-color, var(--gray-100));
 	color: var(--text-color);
 }
 
 /* Show only the icon until hover or keyboard focus, then slide the label open. */
-.docs-copy-button-label {
+.docs-footer-button-label {
 	max-width: 0;
 	overflow: hidden;
 	opacity: 0;
 	transition: max-width 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
 }
 
-.docs-copy-button:hover .docs-copy-button-label,
-.docs-copy-button:focus-visible .docs-copy-button-label {
+.docs-footer-button:hover .docs-footer-button-label,
+.docs-footer-button:focus-visible .docs-footer-button-label {
 	max-width: 10rem;
 	margin-right: 0.25rem;
 	opacity: 1;
@@ -464,10 +522,6 @@
 	border-top: 1px solid var(--border-color);
 	color: var(--text-muted);
 	font-size: var(--text-sm);
-}
-
-.docs-page-footer .docs-edit-link {
-	color: var(--text-muted);
 }
 
 @media (min-width: 1200px) {

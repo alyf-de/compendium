@@ -34,6 +34,7 @@ Die Ergebnisse enthalten nur Seiten, die Sie öffnen dürfen. Eine über `roles`
 eingeschränkte Seite bleibt für alle anderen Benutzer verborgen.
 
 > [!NOTE]
-> Der Index erneuert sich, sobald sich eine Markdown-Datei ändert. Suchen Sie
-> nach dem Bearbeiten einer Seite erneut, um den neuen Inhalt zu sehen. Ein
-> Neustart ist nicht nötig.
+> Der Index erneuert sich, sobald sich eine Markdown-Datei ändert oder eine in
+> Desk geschriebene Seite gespeichert oder gelöscht wird. Suchen Sie nach dem
+> Bearbeiten einer Seite erneut, um den neuen Inhalt zu sehen. Ein Neustart ist
+> nicht nötig.
