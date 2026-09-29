@@ -14,6 +14,7 @@ Mit Compendium können Frappe-Apps ihre Benutzerdokumentation als Markdown-Datei
 - Optionale Frontmatter-Schlüssel: `title`, `order`, `roles`
 - Ohne `roles` ist eine Seite für alle **Desk User** sichtbar
 - Später installierte Apps überschreiben Seiten mit gleichem logischem Pfad
+- In Desk geschriebene Seiten kommen nach allen Apps – siehe [Seiten in Desk schreiben](/app/docs/compendium/docs/desk-pages)
 
 Eine Einführung finden Sie unter [Erste Schritte](/app/docs/compendium/docs/getting-started),
 und unter [Suche](/app/docs/compendium/docs/search), wie Sie eine Seite über die
