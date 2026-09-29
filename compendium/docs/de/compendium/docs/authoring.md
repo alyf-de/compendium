@@ -87,8 +87,9 @@ App bleiben.
 ## Auf GitHub bearbeiten
 
 Wenn eine App in ihrer `pyproject.toml` eine GitHub-`Repository`-URL und
-`docs_branch` angibt, sehen Nutzer mit der Rolle **Compendium Contributor**
-einen Link **Edit on GitHub**, der die Markdown-Datei der aktuellen Seite öffnet.
+`docs_branch` angibt, können Nutzer mit der Rolle **Compendium Contributor**
+die Markdown-Datei der aktuellen Seite auf GitHub öffnen. Dazu klicken sie unten
+auf der Seite auf **Bearbeiten** und dann auf **Auf GitHub bearbeiten**.
 
 ```toml
 [project.urls]

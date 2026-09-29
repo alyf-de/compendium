@@ -83,8 +83,9 @@ Reference images with relative paths in Markdown. Compendium serves them through
 ## Edit on GitHub
 
 When an app declares a GitHub `Repository` URL and a `docs_branch` in its
-`pyproject.toml`, contributors with the **Compendium Contributor** role see an
-**Edit on GitHub** link that opens the Markdown file for the current page.
+`pyproject.toml`, contributors with the **Compendium Contributor** role can
+open the Markdown file of the current page on GitHub. They click **Edit** at the
+bottom of the page, then **Edit on GitHub**.
 
 ```toml
 [project.urls]
