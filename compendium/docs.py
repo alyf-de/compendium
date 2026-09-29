@@ -117,6 +117,7 @@ def build_page_payload(page, locale):
 		"language_label": get_locale_label(page.language),
 		"is_fallback": is_language_fallback(page.language, locale),
 		"content": content,
+		"markdown": page.body,
 		"toc_html": render_toc(page.body),
 		"roles": [_(role) for role in matching_roles],
 		"edit_url": get_edit_url(page),
