@@ -154,7 +154,9 @@ def get_docs_fingerprint():
 				stat = os.stat(filepath)
 				stamps.append((filepath, stat.st_mtime_ns, stat.st_size))
 
-	pages = frappe.get_all(PAGE_DOCTYPE, fields=["count(name) as count", "max(modified) as modified"])[0]
+	pages = frappe.get_all(
+		PAGE_DOCTYPE, fields=[{"COUNT": "name", "as": "count"}, {"MAX": "modified", "as": "modified"}]
+	)[0]
 	return (*sorted(stamps), (pages.count, str(pages.modified)))
 
 
