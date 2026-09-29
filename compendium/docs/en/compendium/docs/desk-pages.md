@@ -7,8 +7,8 @@ roles:
 ---
 
 Besides the pages that apps ship, you can write your own pages in Desk, saved in the Database of your Site.
-You need the **Compendium Contributor** role to see the buttons in the documentation.
-A **System Manager** can also add pages in the **Compendium Page** list.
+You need permission to create a **Compendium Page**. By default, the
+**Compendium Contributor** and **System Manager** roles have it.
 
 ## Add a page
 

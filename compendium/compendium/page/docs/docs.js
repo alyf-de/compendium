@@ -26,7 +26,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.locales = [];
 		this._view_seq = 0;
 		this.layout_ready = Promise.resolve();
-		this.is_contributor = frappe.user.has_role("Compendium Contributor");
+		// adding and overriding pages both start a new Compendium Page
+		this.can_create = frappe.model.can_create("Compendium Page");
 		this.setup_layout();
 	}
 
@@ -259,7 +260,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	render_tree() {
 		this.$tree.empty();
 		this.$tree.append(this.render_tree_nodes(this.tree_data));
-		if (this.is_contributor) {
+		if (this.can_create) {
 			this.$tree.append(
 				`<a class="docs-tree-add" href="#" data-group=""><span class="docs-tree-toggle-spacer" aria-hidden="true">+</span>${frappe.utils.escape_html(
 					__("Add new Page")
@@ -309,7 +310,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
 			).appendTo($row);
 
-			if (this.is_contributor) {
+			if (this.can_create) {
 				const add_label = frappe.utils.escape_html(__("Add page to {0}", [node.title]));
 				$(
 					`<button type="button" class="docs-tree-add-child" data-group="${escaped_path}" title="${add_label}" aria-label="${add_label}">${frappe.utils.icon(
@@ -579,7 +580,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		}
 
 		const edit_label = frappe.utils.escape_html(__("Edit"));
-		const edit_button = this.is_contributor
+		// the server sets edit_route and edit_url only for users who may use them
+		const can_edit = doc.edit_route || doc.edit_url || this.can_create;
+		const edit_button = can_edit
 			? `<button type="button" class="docs-footer-button docs-edit-button" title="${edit_label}" aria-label="${edit_label}"><span class="docs-footer-button-label">${edit_label}</span>${frappe.utils.icon(
 					"edit",
 					"sm"
@@ -614,6 +617,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 
 		if (doc.edit_route) {
 			frappe.set_route(doc.edit_route);
+			return;
+		}
+
+		if (!this.can_create) {
+			window.open(doc.edit_url, "_blank", "noopener");
 			return;
 		}
 

@@ -5,9 +5,9 @@ translated_from_rev: 282363b
 
 Neben den Seiten, die Apps mitbringen, können Sie eigene Seiten in Desk
 schreiben, die in der Datenbank Ihrer Site gespeichert werden.
-Die Schaltflächen in der Dokumentation sehen Sie mit der Rolle
-**Compendium Contributor**. Ein **System Manager** kann Seiten auch in der Liste
-**Compendium Page** anlegen.
+Sie benötigen die Berechtigung, eine **Compendium Page** anzulegen.
+Standardmäßig haben die Rollen **Compendium Contributor** und
+**System Manager** diese Berechtigung.
 
 ## Seite hinzufügen
 
