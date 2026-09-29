@@ -641,6 +641,28 @@ class TestDocs(FrappeTestCase):
 			self.assertEqual([node["path"] for node in view["tree"]], ["guide"])
 			self.assertEqual(view["first_path"], "guide")
 
+	def test_get_view_shows_overview_for_group_without_index_page(self):
+		with self.docs_environment(
+			{
+				"en/guides/setup.md": "---\ntitle: Setup\n---\n# Setup",
+				"en/guides/secret.md": "---\ntitle: Secret\nroles: Nobody\n---\n# Secret",
+				"en/hidden/only.md": "---\ntitle: Only\nroles: Nobody\n---\n# Only",
+			}
+		):
+			frappe.set_user("Guest")
+			with patch("compendium.docs.get_user_roles", return_value=["Desk User"]):
+				view = get_view("guides", locale="en")
+				hidden = get_view("hidden", locale="en")
+
+		self.assertIsNone(view["exc_type"])
+		self.assertTrue(view["page"]["is_overview"])
+		self.assertEqual(view["page"]["title"], "Guides")
+		self.assertIn('href="/app/docs/en/guides/setup"', view["page"]["content"])
+		self.assertNotIn("Secret", view["page"]["content"])
+		# a group whose pages the reader cannot see stays hidden
+		self.assertIsNone(hidden["page"])
+		self.assertEqual(hidden["exc_type"], "DoesNotExistError")
+
 	def test_get_view_resolve_first_selects_opening_page(self):
 		with self.docs_environment(
 			{

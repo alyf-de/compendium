@@ -72,8 +72,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				return;
 			}
 			if ($node.attr("data-has-page") !== "1") {
-				this.toggle_group(path);
-				return;
+				// a group without an index page opens its generated overview
+				this.expanded_paths.add(path);
 			}
 			this.navigate_to(path);
 		});
@@ -303,16 +303,13 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 				classes.push("active");
 				$row.addClass("active");
 			}
-			if (!node.has_page) {
-				classes.push("disabled");
-			}
 			$(
 				`<a class="${classes.join(" ")}" data-path="${escaped_path}" data-has-page="${
 					node.has_page ? "1" : "0"
 				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
 			).appendTo($row);
 
-			if (has_children && this.is_contributor) {
+			if (this.is_contributor) {
 				const add_label = frappe.utils.escape_html(__("Add page to {0}", [node.title]));
 				$(
 					`<button type="button" class="docs-tree-add-child" data-group="${escaped_path}" title="${add_label}" aria-label="${add_label}">${frappe.utils.icon(
@@ -605,6 +602,16 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	edit_page(doc) {
+		if (doc.is_overview) {
+			// writing the group's index page replaces the generated overview
+			frappe.new_doc("Compendium Page", {
+				language: this.current_locale,
+				path: doc.path,
+				title: doc.title,
+			});
+			return;
+		}
+
 		if (doc.edit_route) {
 			frappe.set_route(doc.edit_route);
 			return;
@@ -773,8 +780,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			for (const node of trail) {
 				items.push({
 					label: node.title,
-					route: node.has_page ? this.get_docs_route(node.path) : "",
-					disabled: !node.has_page,
+					route: this.get_docs_route(node.path),
 				});
 			}
 		} else {
@@ -799,8 +805,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 						? title
 						: node?.title ||
 						  frappe.utils.to_title_case(segments[index].replace(/-/g, " ")),
-				route: !is_last && node?.has_page ? this.get_docs_route(accumulated) : "",
-				disabled: is_last || !node?.has_page,
+				route: !is_last && node ? this.get_docs_route(accumulated) : "",
+				disabled: is_last || !node,
 			});
 		}
 	}

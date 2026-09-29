@@ -79,24 +79,23 @@ def get_view(path: str = "", locale: str | None = None, resolve_first: int | boo
 		}
 
 	page_record = pages.get(path)
-	if not page_record:
-		return {
-			"tree": tree,
-			"page": None,
-			"variants": [],
-			"path": path,
-			"first_path": first_path,
-			"exc_type": "DoesNotExistError",
-		}
+	if not page_record or not is_permitted(page_record):
+		# a group without an index page the reader may see still gets a page: its overview
+		group = find_tree_node(tree, path)
+		if group:
+			exc_type = None
+		elif page_record:
+			exc_type = "PermissionError"
+		else:
+			exc_type = "DoesNotExistError"
 
-	if not is_permitted(page_record):
 		return {
 			"tree": tree,
-			"page": None,
+			"page": build_overview_payload(group, locale) if group else None,
 			"variants": [],
 			"path": path,
 			"first_path": first_path,
-			"exc_type": "PermissionError",
+			"exc_type": exc_type,
 		}
 
 	return {
@@ -127,6 +126,40 @@ def build_page_payload(page, locale):
 		"edit_url": get_edit_url(page),
 		"edit_route": get_edit_route(page),
 	}
+
+
+def build_overview_payload(group, locale):
+	"""Stand-in page for a group without an index page: a list of its pages."""
+	links = []
+	for child in group["children"]:
+		label = child["title"].replace("[", r"\[").replace("]", r"\]")
+		links.append(f"- [{label}](/app/docs/{locale}/{quote(child['path'])})")
+	markdown = f"# {group['title']}\n\n" + "\n".join(links)
+
+	return {
+		"path": group["path"],
+		"title": group["title"],
+		"locale": locale,
+		"language": locale,
+		"language_label": get_locale_label(locale),
+		"is_fallback": False,
+		"is_overview": True,
+		"content": render_page_content(markdown),
+		"markdown": markdown,
+		"toc_html": "",
+		"roles": [],
+		"edit_url": None,
+		"edit_route": None,
+	}
+
+
+def find_tree_node(nodes, path):
+	for node in nodes:
+		if node["path"] == path:
+			return node
+		if path.startswith(node["path"] + "/"):
+			return find_tree_node(node["children"], path)
+	return None
 
 
 @frappe.whitelist()
