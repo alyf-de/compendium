@@ -29,7 +29,7 @@ Legen Sie Dokumentation in einem Sprachverzeichnis innerhalb von `docs/` ab:
 ```
 
 Das erste Verzeichnis muss ein Frappe-**Language**-Code sein. Es wird aus dem
-logischen Pfad entfernt. Routen enthalten die Locale: `/app/docs/de/guides/setup`.
+logischen Pfad entfernt. Routen enthalten die Locale: `/desk/docs/de/guides/setup`.
 
 Die Locale in der Route ist die Sprache, in der Sie **lesen** — nicht die Sprache,
 in der eine einzelne Datei verfasst ist. Öffnen Sie eine sprachneutrale Route,
@@ -97,7 +97,7 @@ docs_branch = "version-15"
 ```mermaid
 flowchart LR
   apps[Installierte Apps] --> tree[docs-Bäume]
-  tree --> desk["/app/docs"]
+  tree --> desk["/desk/docs"]
 ```
 
 Die [Mermaid-Syntaxdokumentation](https://mermaid.ai/open-source/intro/) listet die

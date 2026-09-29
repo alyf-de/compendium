@@ -31,7 +31,7 @@ Put documentation under a language directory inside `docs/`:
 ```
 
 The first directory must be a Frappe **Language** code. It is stripped from the
-logical path. Routes include the locale: `/app/docs/de/guides/setup`.
+logical path. Routes include the locale: `/desk/docs/de/guides/setup`.
 
 The locale in the route is the language you are **reading in**, not the language a
 given file happens to be written in. Open a language-neutral route and Compendium
@@ -94,7 +94,7 @@ Fenced `mermaid` blocks render as diagrams in the reading pane:
 ```mermaid
 flowchart LR
   apps[Installed apps] --> tree[docs trees]
-  tree --> desk["/app/docs"]
+  tree --> desk["/desk/docs"]
 ```
 
 See the [Mermaid syntax docs](https://mermaid.ai/open-source/intro/) for diagram types.

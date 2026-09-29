@@ -4,7 +4,7 @@
 
 ### Compendium
 
-In-app documentation for Frappe Desk. Compendium aggregates Markdown files from every installed app's `docs/{language}/**/*.md` tree and serves them at `/app/docs`.
+In-app documentation for Frappe Desk. Compendium aggregates Markdown files from every installed app's `docs/{language}/**/*.md` tree and serves them at `/desk/docs`.
 
 <p>
   <img src="compendium/public/images/demo.webp" alt="Compendium Demo" width="100%">
@@ -21,7 +21,7 @@ See the [built-in docs](compendium/docs) for authoring conventions and a getting
 - Relative images served safely from each app's `docs/` tree
 - Mermaid diagrams in fenced code blocks
 - Syntax highlighting for fenced code blocks
-- Desk entry points: `/app/docs`, Help menu, and the `/apps` picker
+- Desk entry points: `/desk/docs`, Help menu, and the `/apps` picker
 
 ### Installation
 
@@ -33,7 +33,7 @@ bench get-app $URL_OF_THIS_REPO --branch version-15
 bench --site your-site install-app compendium
 ```
 
-After install, open `/app/docs` in Desk (or use **Compendium** in the Help menu).
+After install, open `/desk/docs` in Desk (or use **Compendium** in the Help menu).
 
 Other apps can ship their own docs by adding a `docs/` folder to their package, for example `my_app/docs/en/guides/setup.md`.
 
