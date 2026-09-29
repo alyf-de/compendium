@@ -223,11 +223,9 @@
 	text-underline-offset: 0.15em;
 }
 
-/* Desk sets a { color: text }, so markdown links need an explicit highlight. */
 .docs-copy-button {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.25rem;
 	white-space: nowrap;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
@@ -236,14 +234,30 @@
 	cursor: pointer;
 	padding: 0.25rem 0.5rem;
 	font-size: 0.75rem;
- }
+}
 
- .docs-copy-button:hover {
+.docs-copy-button:hover,
+.docs-copy-button:focus-visible {
 	background: var(--fg-hover-color, var(--gray-100));
 	color: var(--text-color);
- }
+}
 
+/* Show only the icon until hover or keyboard focus, then slide the label open. */
+.docs-copy-button-label {
+	max-width: 0;
+	overflow: hidden;
+	opacity: 0;
+	transition: max-width 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
+}
 
+.docs-copy-button:hover .docs-copy-button-label,
+.docs-copy-button:focus-visible .docs-copy-button-label {
+	max-width: 10rem;
+	margin-right: 0.25rem;
+	opacity: 1;
+}
+
+/* Desk sets a { color: text }, so markdown links need an explicit highlight. */
 .docs-reading-pane a {
 	color: var(--primary);
 	text-decoration: underline;
