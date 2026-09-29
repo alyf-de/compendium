@@ -22,6 +22,10 @@ msgstr ""
 msgid "Compendium"
 msgstr ""
 
+#: compendium/compendium/page/docs/docs.js:50
+msgid "Copy as Markdown"
+msgstr ""
+
 #: compendium/compendium/page/docs/docs.js:443
 msgid "Copy link"
 msgstr ""

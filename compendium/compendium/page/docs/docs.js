@@ -109,6 +109,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$reading.on("click", ".docs-heading-anchor", (event) => {
 			this.copy_heading_fragment(event);
 		});
+		this.$reading.on("click", ".docs-copy-button", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.copy_as_markdown();
+		});
 	}
 
 	show() {
@@ -430,6 +435,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$reading.removeClass("docs-loading hide");
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
+		this.current_markdown = doc.markdown || "";
 		this.$reading.html(doc.content || "");
 		const toc_html = doc.toc_html || "";
 		this.$toc.html(toc_html);
@@ -582,11 +588,17 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			);
 		}
 
-		if (!parts.length) {
-			return;
-		}
+		const copy_label = frappe.utils.escape_html(__("Copy as Markdown"));
+		const copy_button = `<button type="button" class="docs-copy-button" title="${copy_label}" aria-label="${copy_label}"><span class="docs-copy-button-label">${copy_label}</span>${frappe.utils.icon(
+			"es-line-copy",
+			"sm",
+		)}</button>`;
 
-		this.$reading.append(`<footer class="docs-page-footer">${parts.join("<br>")}</footer>`);
+		const meta = parts.length
+			? `<div class="docs-page-footer-meta">${parts.join("<br>")}</div>`
+			: ``;
+
+		this.$reading.append(`<footer class="docs-page-footer">${meta}${copy_button}</footer>`);
 	}
 
 	render_mermaid() {
@@ -750,5 +762,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			}
 		}
 		return null;
+	}
+
+	copy_as_markdown() {
+		frappe.utils.copy_to_clipboard(this.current_markdown || "");
 	}
 };
