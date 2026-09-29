@@ -26,6 +26,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.locales = [];
 		this._view_seq = 0;
 		this.layout_ready = Promise.resolve();
+		this.is_contributor = frappe.user.has_role("Compendium Contributor");
 		this.setup_layout();
 	}
 
@@ -36,17 +37,6 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			'<div class="docs-sidebar overlay-sidebar hidden-xs hidden-sm"></div>'
 		).appendTo(this.page.sidebar);
 		this.$tree = $('<div class="docs-tree"></div>').appendTo(this.$sidebar);
-		if (frappe.model.can_create("Compendium Page")) {
-			$(
-				`<button type="button" class="btn btn-default btn-sm docs-new-page">${frappe.utils.escape_html(
-					__("New Page")
-				)}</button>`
-			)
-				.on("click", () =>
-					frappe.new_doc("Compendium Page", { language: this.current_locale })
-				)
-				.appendTo(this.$sidebar);
-		}
 		this.$locale_picker = $(`
 			<div class="docs-locale-picker">
 				<label class="docs-locale-label" for="docs-locale-select">${__("Language")}</label>
@@ -88,6 +78,15 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			this.navigate_to(path);
 		});
 
+		this.$tree.on("click", ".docs-tree-add, .docs-tree-add-child", (event) => {
+			event.preventDefault();
+			const group = $(event.currentTarget).attr("data-group");
+			frappe.new_doc("Compendium Page", {
+				language: this.current_locale,
+				path: group ? `${group}/` : "",
+			});
+		});
+
 		// Desk treats href="#…" as v1 routes (/app/%23…). Keep in-page anchors local.
 		this.$content.on("click", 'a[href^="#"]', (event) => {
 			this.follow_in_page_anchor(event);
@@ -99,6 +98,10 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			event.preventDefault();
 			event.stopPropagation();
 			this.copy_as_markdown();
+		});
+		this.$reading.on("click", ".docs-edit-button", (event) => {
+			event.preventDefault();
+			this.edit_page(this.current_doc);
 		});
 	}
 
@@ -255,10 +258,14 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 
 	render_tree() {
 		this.$tree.empty();
-		if (!this.tree_data.length) {
-			return;
-		}
 		this.$tree.append(this.render_tree_nodes(this.tree_data));
+		if (this.is_contributor) {
+			this.$tree.append(
+				`<a class="docs-tree-add" href="#" data-group=""><span class="docs-tree-toggle-spacer" aria-hidden="true">+</span>${frappe.utils.escape_html(
+					__("Add new Page")
+				)}</a>`
+			);
+		}
 	}
 
 	render_tree_nodes(nodes) {
@@ -304,6 +311,16 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 					node.has_page ? "1" : "0"
 				}" href="#">${frappe.utils.escape_html(node.title)}</a>`
 			).appendTo($row);
+
+			if (has_children && this.is_contributor) {
+				const add_label = frappe.utils.escape_html(__("Add page to {0}", [node.title]));
+				$(
+					`<button type="button" class="docs-tree-add-child" data-group="${escaped_path}" title="${add_label}" aria-label="${add_label}">${frappe.utils.icon(
+						"add",
+						"xs"
+					)}</button>`
+				).appendTo($row);
+			}
 
 			if (has_children) {
 				$item.append(
@@ -419,6 +436,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$reading.removeClass("docs-loading hide");
 		this.$state.addClass("hide");
 		this.page.set_title(doc.title || __("Documentation"));
+		this.current_doc = doc;
 		this.current_markdown = doc.markdown || "";
 		this.$reading.html(doc.content || "");
 		const toc_html = doc.toc_html || "";
@@ -563,25 +581,16 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			);
 		}
 
-		if (doc.edit_route) {
-			parts.push(
-				`<a class="docs-edit-link" href="${frappe.utils.escape_html(
-					doc.edit_route
-				)}">${frappe.utils.escape_html(__("Edit"))}</a>`
-			);
-		}
-
-		if (doc.edit_url) {
-			const label = frappe.utils.escape_html(__("Edit on GitHub"));
-			parts.push(
-				`<a class="docs-edit-link" href="${frappe.utils.escape_html(
-					doc.edit_url
-				)}" target="_blank" rel="noopener noreferrer">${label}</a>`
-			);
-		}
+		const edit_label = frappe.utils.escape_html(__("Edit"));
+		const edit_button = this.is_contributor
+			? `<button type="button" class="docs-footer-button docs-edit-button" title="${edit_label}" aria-label="${edit_label}"><span class="docs-footer-button-label">${edit_label}</span>${frappe.utils.icon(
+					"edit",
+					"sm"
+			  )}</button>`
+			: "";
 
 		const copy_label = frappe.utils.escape_html(__("Copy as Markdown"));
-		const copy_button = `<button type="button" class="docs-copy-button" title="${copy_label}" aria-label="${copy_label}"><span class="docs-copy-button-label">${copy_label}</span>${frappe.utils.icon(
+		const copy_button = `<button type="button" class="docs-footer-button docs-copy-button" title="${copy_label}" aria-label="${copy_label}"><span class="docs-footer-button-label">${copy_label}</span>${frappe.utils.icon(
 			"es-line-copy",
 			"sm"
 		)}</button>`;
@@ -590,7 +599,60 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			? `<div class="docs-page-footer-meta">${parts.join("<br>")}</div>`
 			: ``;
 
-		this.$reading.append(`<footer class="docs-page-footer">${meta}${copy_button}</footer>`);
+		this.$reading.append(
+			`<footer class="docs-page-footer">${meta}<div class="docs-page-footer-actions">${edit_button}${copy_button}</div></footer>`
+		);
+	}
+
+	edit_page(doc) {
+		if (doc.edit_route) {
+			frappe.set_route(doc.edit_route);
+			return;
+		}
+
+		// An app ships this page: override it on this site, or change it at the source.
+		const message = doc.edit_url
+			? __(
+					"This page comes with an installed app. You can override it on this site with a Compendium Page, or change its source on GitHub."
+			  )
+			: __(
+					"This page comes with an installed app. You can override it on this site with a Compendium Page."
+			  );
+		const dialog = new frappe.ui.Dialog({
+			title: __("Edit Page"),
+			fields: [
+				{
+					fieldtype: "HTML",
+					options: `<p class="text-muted">${frappe.utils.escape_html(message)}</p>`,
+				},
+			],
+			primary_action_label: __("Override with Compendium Page"),
+			primary_action: () => {
+				dialog.hide();
+				this.override_page(doc);
+			},
+		});
+		if (doc.edit_url) {
+			dialog.set_secondary_action_label(__("Edit on GitHub"));
+			dialog.set_secondary_action(() => {
+				dialog.hide();
+				window.open(doc.edit_url, "_blank", "noopener");
+			});
+		}
+		dialog.show();
+	}
+
+	override_page(doc) {
+		frappe
+			.xcall("compendium.docs.make_override", {
+				path: doc.path,
+				locale: this.current_locale,
+			})
+			.then((page) => {
+				// same as frappe.model.open_mapped_doc: sync names the unsaved doc
+				frappe.model.sync(page);
+				frappe.set_route("Form", page.doctype, page.name);
+			});
 	}
 
 	render_mermaid() {

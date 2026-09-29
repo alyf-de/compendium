@@ -20,13 +20,15 @@ frappe.ui.form.on("Compendium Page", {
 	},
 
 	title(frm) {
-		if (!frm.doc.path) {
+		// the docs sidebar opens a new page with its group as "guides/"; add the slug to it
+		const group = frm.doc.path || "";
+		if (!group || group.endsWith("/")) {
 			// same slug as slugify() in compendium_page.py
 			const slug = (frm.doc.title || "")
 				.toLowerCase()
 				.replace(/[^\p{L}\p{N}]+/gu, "-")
 				.replace(/^-+|-+$/g, "");
-			frm.set_value("path", slug);
+			frm.set_value("path", group + slug);
 		}
 	},
 });

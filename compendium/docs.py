@@ -634,6 +634,29 @@ def get_edit_url(page):
 	return f"https://github.com/{owner}/{repo}/edit/{quote(branch, safe='')}/{relative_path}"
 
 
+@frappe.whitelist()
+def make_override(path: str, locale: str | None = None):
+	"""An unsaved Compendium Page that overrides the page at this path.
+
+	Like a mapped document, the client opens it in a new form. The copy keeps the
+	page's path, language and roles, so saving it replaces the page for the same readers.
+	"""
+	page = get_page_record(normalize_path(path), locale=normalize_locale(locale), check_permission=True)
+	doc = frappe.new_doc(PAGE_DOCTYPE)
+	doc.update(
+		{
+			"title": page.title,
+			"path": page.path,
+			"language": page.language,
+			"order": page.order,
+			"content": page.body,
+		}
+	)
+	for role in page.roles:
+		doc.append("roles", {"role": role})
+	return doc
+
+
 def get_edit_route(page):
 	"""Desk route of the Compendium Page currently rendered, for users who may edit it."""
 	if not page.name or not frappe.has_permission(PAGE_DOCTYPE, "write", page.name):

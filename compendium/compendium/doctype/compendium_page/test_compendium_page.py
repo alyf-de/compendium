@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from compendium.docs import discover_pages, get_asset, get_page, get_view
+from compendium.docs import discover_pages, get_asset, get_page, get_view, make_override
 from compendium.search import awesomebar_results
 from compendium.tests.test_docs import DocsTestEnvironment
 
@@ -49,6 +49,18 @@ class TestCompendiumPage(FrappeTestCase):
 			self.make_page("Escape", path="../secrets")
 		with self.assertRaises(frappe.ValidationError):
 			self.make_page("!!!")
+
+	def test_override_copies_app_page(self):
+		files = {"en/guides/setup.md": "---\ntitle: Setup\norder: 3\nroles: System Manager\n---\nShipped"}
+		with DocsTestEnvironment(files):
+			doc = make_override("guides/setup", locale="en")
+
+		self.assertTrue(doc.is_new())
+		self.assertEqual(
+			(doc.title, doc.path, doc.language, doc.order, doc.content),
+			("Setup", "guides/setup", "en", 3, "Shipped"),
+		)
+		self.assertEqual([row.role for row in doc.roles], ["System Manager"])
 
 	def test_markdown_is_stored_verbatim_and_sanitized_on_render(self):
 		with DocsTestEnvironment({}, db_pages=True):
