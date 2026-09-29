@@ -591,7 +591,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		const copy_label = frappe.utils.escape_html(__("Copy as Markdown"));
 		const copy_button = `<button type="button" class="docs-copy-button" title="${copy_label}" aria-label="${copy_label}"><span class="docs-copy-button-label">${copy_label}</span>${frappe.utils.icon(
 			"es-line-copy",
-			"sm"
+			"sm",
 		)}</button>`;
 
 		const meta = parts.length
