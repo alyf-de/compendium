@@ -83,9 +83,7 @@ def search(locale, match_query, snippet_tokens=SNIPPET_TOKENS):
 			if len(hits) >= RESULT_LIMIT:
 				break
 
-		snippets = get_snippets(
-			index, match_query, [rowid for rowid, _path, _title in hits], snippet_tokens
-		)
+		snippets = get_snippets(index, match_query, [rowid for rowid, _path, _title in hits], snippet_tokens)
 
 	return [(path, title, snippets.get(rowid, "")) for rowid, path, title in hits]
 
