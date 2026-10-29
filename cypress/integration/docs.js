@@ -37,13 +37,8 @@ context("Documentation Browser", () => {
 	});
 
 	it("renders mermaid diagrams from fenced blocks", () => {
-<<<<<<< HEAD
 		cy.visit("/app/docs/en/compendium/docs/authoring");
-		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
-=======
-		cy.visit("/desk/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane .docs-diagram svg", { timeout: 15000 }).should("exist");
->>>>>>> 64d67fa (feat: render Mermaid diagrams with Pele (#38))
 	});
 
 	it("highlights fenced code blocks", () => {

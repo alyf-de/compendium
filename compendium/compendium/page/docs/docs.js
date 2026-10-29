@@ -683,21 +683,11 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			diagrams.push({ element: $diagram.get(0), source: code.textContent || "" });
 		});
 
-<<<<<<< HEAD
-		return frappe
-			.require("mermaid.bundle.js")
-			.then(() =>
-				this.ensure_mermaid().then(() =>
-					compendium.mermaid.run({ nodes, suppressErrors: true })
-				)
-			);
-=======
 		return frappe.require("pele.bundle.js").then(() => {
 			for (const { element, source } of diagrams) {
 				compendium.pele.mount(element, source);
 			}
 		});
->>>>>>> 64d67fa (feat: render Mermaid diagrams with Pele (#38))
 	}
 
 	highlight_code() {
