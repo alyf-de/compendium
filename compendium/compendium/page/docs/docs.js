@@ -444,9 +444,9 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.render_heading_anchors();
 		this.render_fallback_notice(doc);
 		this.render_page_footer(doc);
-		// Mermaid replaces fences with SVG asynchronously and shifts later headings;
+		// Diagrams load their renderer asynchronously and shift later headings;
 		// fragment scrolls wait on layout_ready so they use the final layout.
-		this.layout_ready = this.render_mermaid();
+		this.layout_ready = this.render_diagrams();
 		this.scroll_to_heading();
 		this.highlight_code();
 		this.update_breadcrumbs(doc.path, doc.title);
@@ -670,26 +670,24 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			});
 	}
 
-	render_mermaid() {
+	render_diagrams() {
 		const $blocks = this.$reading.find("pre code.language-mermaid, pre code.mermaid");
 		if (!$blocks.length) {
 			return Promise.resolve();
 		}
 
-		const nodes = [];
+		const diagrams = [];
 		$blocks.each((_, code) => {
-			const $diagram = $('<div class="mermaid">').text(code.textContent || "");
+			const $diagram = $('<div class="docs-diagram">');
 			$(code).closest("pre").replaceWith($diagram);
-			nodes.push($diagram.get(0));
+			diagrams.push({ element: $diagram.get(0), source: code.textContent || "" });
 		});
 
-		return frappe
-			.require("mermaid.bundle.js")
-			.then(() =>
-				this.ensure_mermaid().then(() =>
-					compendium.mermaid.run({ nodes, suppressErrors: true })
-				)
-			);
+		return frappe.require("pele.bundle.js").then(() => {
+			for (const { element, source } of diagrams) {
+				compendium.pele.mount(element, source);
+			}
+		});
 	}
 
 	highlight_code() {
@@ -707,22 +705,6 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 					}
 				}
 			});
-	}
-
-	ensure_mermaid() {
-		if (compendium.mermaid_ready) {
-			return Promise.resolve();
-		}
-
-		const theme =
-			document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "default";
-		compendium.mermaid.initialize({
-			startOnLoad: false,
-			securityLevel: "strict",
-			theme,
-		});
-		compendium.mermaid_ready = true;
-		return Promise.resolve();
 	}
 
 	show_empty_state() {
