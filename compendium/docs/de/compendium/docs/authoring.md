@@ -85,11 +85,16 @@ Markdown-Datei. Compendium ersetzt den Link durch die Route dieser Seite:
 
 ```md
 [Einrichtung](setup.md)
-[Installation](../reference/install.md#steps)
+[Installation](../reference/install.md)
 ```
 
 Der Pfad ist relativ zum Ordner der aktuellen Datei. Ein Link auf `index.md`
 öffnet die Startseite dieses Ordners.
+
+Seien Sie vorsichtig mit Links auf eine Überschrift, zum Beispiel
+`setup.md#install`. Compendium bildet das Fragment aus dem Text der Überschrift,
+es ist also in jeder Sprache anders. Sieht der Leser die Seite in einer anderen
+Sprache, öffnet sie sich am Anfang.
 
 Sie können auch auf eine Route ohne Locale verlinken, zum Beispiel
 `/desk/docs/guides/setup`. Compendium öffnet die Seite dann in der Sprache des

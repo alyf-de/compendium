@@ -82,11 +82,15 @@ replaces the link with the route of that page:
 
 ```md
 [Setup](setup.md)
-[Install](../reference/install.md#steps)
+[Install](../reference/install.md)
 ```
 
 The path is relative to the folder of the current file. A link to `index.md`
 opens the landing page of that folder.
+
+Be careful with links to a heading, such as `setup.md#install`. Compendium makes
+the fragment from the heading text, so it is different in each language. If the
+reader sees the page in a different language, the page opens at the top.
 
 You can also link to a route without a locale, for example
 `/desk/docs/guides/setup`. Compendium then opens the page in the language of the
