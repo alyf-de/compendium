@@ -174,6 +174,12 @@ class TestDocs(IntegrationTestCase):
 		self.assertIn('href="/desk/docs#top"', setup)
 		self.assertIn('href="/desk/docs/guides/other"', german_setup)
 
+	def test_page_link_with_html_entity_in_file_name(self):
+		with self.docs_environment({"en/guides/page.md": "# Page\n\n[Tax](sales&tax.md)"}):
+			html = get_page("guides/page", locale="en")["content"]
+
+		self.assertIn('href="/desk/docs/guides/sales%26tax"', html)
+
 	def test_desk_override_of_folder_index_keeps_relative_links(self):
 		override = frappe._dict(
 			{

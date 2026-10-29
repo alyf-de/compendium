@@ -7,6 +7,7 @@ import posixpath
 import re
 import tomllib
 from collections import Counter
+from html import unescape as html_unescape
 from urllib.parse import quote, unquote, urlencode
 
 import frappe
@@ -903,7 +904,8 @@ def rewrite_page_links(html, folder):
 		if href.startswith("/"):
 			return match.group(0)
 
-		target = posixpath.normpath(posixpath.join(folder, unquote(href[:-3])))
+		link_path = unquote(html_unescape(href[:-3]))
+		target = posixpath.normpath(posixpath.join(folder, link_path))
 		if target.startswith(".."):
 			# outside the docs tree
 			return match.group(0)
