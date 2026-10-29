@@ -151,6 +151,74 @@ class TestDocs(IntegrationTestCase):
 			self.assertIn("get_asset", html)
 			self.assertNotIn("<script>", html)
 
+	def test_relative_page_links_point_to_locale_neutral_routes(self):
+		with self.docs_environment(
+			{
+				"en/index.md": "# Home\n\n[Setup](guides/setup.md)",
+				"en/guides/index.md": "# Guides\n\n[Setup](setup.md) [Install](./setup.md#install) [Home](../index.md)",
+				"en/guides/setup.md": "# Setup\n\n[Guides](index.md) [Sibling](other.md) [Home](../index.md#top)",
+				"de/guides/setup.md": "# Einrichtung\n\n[Andere](other.md)",
+			}
+		):
+			home = get_page("", locale="en")["content"]
+			guides = get_page("guides", locale="en")["content"]
+			setup = get_page("guides/setup", locale="en")["content"]
+			german_setup = get_page("guides/setup", locale="de")["content"]
+
+		self.assertIn('href="/desk/docs/guides/setup"', home)
+		self.assertIn('href="/desk/docs/guides/setup"', guides)
+		self.assertIn('href="/desk/docs/guides/setup#install"', guides)
+		self.assertIn('href="/desk/docs"', guides)
+		self.assertIn('href="/desk/docs/guides"', setup)
+		self.assertIn('href="/desk/docs/guides/other"', setup)
+		self.assertIn('href="/desk/docs#top"', setup)
+		self.assertIn('href="/desk/docs/guides/other"', german_setup)
+
+	def test_page_link_with_html_entity_in_file_name(self):
+		with self.docs_environment({"en/guides/page.md": "# Page\n\n[Tax](sales&tax.md)"}):
+			html = get_page("guides/page", locale="en")["content"]
+
+		self.assertIn('href="/desk/docs/guides/sales%26tax"', html)
+
+	def test_desk_override_of_folder_index_keeps_relative_links(self):
+		override = frappe._dict(
+			{
+				"name": "override",
+				"path": "guides",
+				"title": "Guides",
+				"order": 0,
+				"roles": ["Desk User"],
+				"body": "[Setup](setup.md)",
+				"language": "en",
+				"app": "Compendium Page",
+			}
+		)
+		files = {"en/guides/index.md": "# Guides\n\n[Setup](setup.md)", "en/guides/setup.md": "# Setup"}
+		with (
+			self.docs_environment(files),
+			patch("compendium.docs.get_compendium_pages", return_value=[override]),
+		):
+			html = get_page("guides", locale="en")["content"]
+
+		self.assertIn('href="/desk/docs/guides/setup"', html)
+
+	def test_other_links_are_not_rewritten(self):
+		links = (
+			"https://example.com/page.md",
+			"/desk/docs/en/guides/setup",
+			"mailto:docs@example.com",
+			"#section",
+			"manual.pdf",
+			"../../outside.md",
+			"setup.md?next=other.md",
+		)
+		body = "\n\n".join(f"[Link]({link})" for link in links)
+		with self.docs_environment({"en/guides/page.md": f"# Page\n\n{body}"}):
+			html = get_page("guides/page", locale="en")["content"]
+
+		for link in links:
+			self.assertIn(f'href="{link}"', html)
+
 	def test_mermaid_fence_keeps_language_class(self):
 		html = render_page_content("```mermaid\nflowchart LR\n  A-->B\n```")
 		self.assertIn("language-mermaid", html)
