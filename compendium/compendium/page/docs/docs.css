@@ -468,15 +468,18 @@
 	opacity: 0.5;
 }
 
-.docs-reading-pane .mermaid {
+.docs-reading-pane .docs-diagram {
 	margin: var(--margin-md) 0;
-	overflow-x: auto;
-	text-align: center;
-}
-
-.docs-reading-pane .mermaid svg {
-	max-width: 100%;
-	height: auto;
+	--pele-bg: var(--fg-color);
+	--pele-fg: var(--text-color);
+	--pele-muted: var(--text-muted);
+	--pele-line: var(--text-color);
+	--pele-surface: var(--control-bg);
+	--pele-surface-alt: var(--subtle-fg);
+	--pele-border: var(--border-color);
+	--pele-accent: var(--ink-blue-3);
+	--pele-font: var(--font-stack);
+	--pele-radius: var(--border-radius);
 }
 
 .docs-reading-pane pre {
