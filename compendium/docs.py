@@ -3,6 +3,7 @@
 
 import importlib.util
 import os
+import posixpath
 import re
 import tomllib
 from collections import Counter
@@ -15,6 +16,7 @@ from frappe.utils import cint, get_url, has_common, sanitize_html
 from frappe.utils.change_log import parse_github_url
 from frappe.website.utils import extract_title, get_frontmatter
 
+from compendium.install import DOCUMENTATION_ROUTE
 from compendium.permissions import CONTRIBUTOR_ROLE
 
 DOCS_FOLDER = "docs"
@@ -23,6 +25,7 @@ DEFAULT_LANG = "en"
 DEFAULT_ROLE = "Desk User"
 ALLOWED_FRONTMATTER_KEYS = ("title", "order", "roles")
 IMAGE_SRC_PATTERN = re.compile(r'(<img[^>]+src=["\'])([^"\']+)(["\'])', re.IGNORECASE)
+PAGE_LINK_PATTERN = re.compile(r'(<a\b[^>]+href=["\'])([^"\'#:]+\.md)(#[^"\']*)?(["\'])', re.IGNORECASE)
 PRIVATE_FILE_PATTERN = re.compile(
 	r'(<(?:img|a)\b[^>]+(?:src|href)=["\'])(/private/files/[^"\']+)(["\'])', re.IGNORECASE
 )
@@ -111,6 +114,7 @@ def get_view(path: str = "", locale: str | None = None, resolve_first: int | boo
 
 def build_page_payload(page, locale):
 	content = render_page_content(page.body, page.path, locale, is_db_page=bool(page.name))
+	content = rewrite_page_links(content, get_link_folder(page))
 	user_roles = set(get_user_roles())
 	matching_roles = [role for role in page.roles if role in user_roles]
 	return {
@@ -876,6 +880,43 @@ def rewrite_asset_urls(html, page_path, locale=None):
 		return f"{prefix}{get_asset_url(page_path, src, locale)}{suffix}"
 
 	return IMAGE_SRC_PATTERN.sub(replace, html or "")
+
+
+def get_link_folder(page):
+	"""Logical folder that relative links in the page resolve against: the folder of its file.
+	A page written in Desk has no file. It counts as a folder index when other pages live
+	below its path, so an override of guides/index.md keeps links like setup.md working."""
+	if page.filepath:
+		is_index = os.path.basename(page.filepath) == "index.md"
+	else:
+		is_index = any(path.startswith(f"{page.path}/") for _language, path in discover_raw_pages())
+
+	return page.path if is_index else posixpath.dirname(page.path)
+
+
+def rewrite_page_links(html, folder):
+	"""Point relative links to other Markdown pages at their docs route. The route has no
+	locale, so the docs browser opens the page in the reader's language."""
+
+	def replace(match):
+		prefix, href, fragment, suffix = match.groups()
+		if href.startswith("/"):
+			return match.group(0)
+
+		target = posixpath.normpath(posixpath.join(folder, unquote(href[:-3])))
+		if target.startswith(".."):
+			# outside the docs tree
+			return match.group(0)
+
+		segments = target.split("/")
+		if segments[-1] == "index":
+			segments.pop()
+
+		path = "/".join(segments)
+		route = f"{DOCUMENTATION_ROUTE}/{quote(path)}" if path else DOCUMENTATION_ROUTE
+		return f"{prefix}{route}{fragment or ''}{suffix}"
+
+	return PAGE_LINK_PATTERN.sub(replace, html)
 
 
 def rewrite_private_file_urls(html, page_path, locale=None):
