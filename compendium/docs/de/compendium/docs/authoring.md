@@ -78,6 +78,29 @@ ersetzt also die Seite der App. Übersetzte Seiten folgen denselben Regeln zur
 kanonischen Sprache wie Dateien. Siehe
 [Seiten in Desk schreiben](/app/docs/compendium/docs/desk-pages).
 
+## Links zwischen Seiten
+
+Um auf eine andere Seite zu verlinken, verwenden Sie den relativen Pfad zu ihrer
+Markdown-Datei. Compendium ersetzt den Link durch die Route dieser Seite:
+
+```md
+[Einrichtung](setup.md)
+[Installation](../reference/install.md)
+```
+
+Der Pfad ist relativ zum Ordner der aktuellen Datei. Ein Link auf `index.md`
+öffnet die Startseite dieses Ordners.
+
+Seien Sie vorsichtig mit Links auf eine Überschrift, zum Beispiel
+`setup.md#install`. Compendium bildet das Fragment aus dem Text der Überschrift,
+es ist also in jeder Sprache anders. Sieht der Leser die Seite in einer anderen
+Sprache, öffnet sie sich am Anfang.
+
+Sie können auch auf eine Route ohne Locale verlinken, zum Beispiel
+`/app/docs/guides/setup`. Compendium öffnet die Seite dann in der Sprache des
+Lesers. Verwenden Sie diese Form in Seiten, die Sie in Desk schreiben. Geben Sie
+keine Locale im Link an: Ein Link mit Locale öffnet immer diese Sprache.
+
 ## Bilder und Assets
 
 Verweisen Sie im Markdown mit relativen Pfaden auf Bilder. Compendium liefert sie
