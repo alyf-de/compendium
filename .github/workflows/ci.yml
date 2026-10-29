@@ -4,13 +4,9 @@ name: CI
 on:
   push:
     branches:
-<<<<<<< HEAD
       - develop
-=======
-      - version-16
     paths-ignore:
       - "**/locale/main.pot"
->>>>>>> f62195b (ci: skip tests when only main.pot changes (#36))
   pull_request:
     paths-ignore:
       - "**/locale/main.pot"
