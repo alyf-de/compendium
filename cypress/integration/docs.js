@@ -37,8 +37,13 @@ context("Documentation Browser", () => {
 	});
 
 	it("renders mermaid diagrams from fenced blocks", () => {
+<<<<<<< HEAD
 		cy.visit("/app/docs/en/compendium/docs/authoring");
 		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
+=======
+		cy.visit("/desk/docs/en/compendium/docs/authoring");
+		cy.get(".docs-reading-pane .docs-diagram svg", { timeout: 15000 }).should("exist");
+>>>>>>> 64d67fa (feat: render Mermaid diagrams with Pele (#38))
 	});
 
 	it("highlights fenced code blocks", () => {
@@ -62,7 +67,7 @@ context("Documentation Browser", () => {
 		cy.get(".docs-toc-pane").should("be.visible");
 		cy.get('.docs-toc-pane a[href="#code-blocks"]').should("exist");
 		cy.location("hash").should("eq", "#code-blocks");
-		cy.get(".docs-reading-pane .mermaid svg", { timeout: 15000 }).should("exist");
+		cy.get(".docs-reading-pane .docs-diagram svg", { timeout: 15000 }).should("exist");
 		cy.get(".docs-reading-pane h2#code-blocks").should(($heading) => {
 			const heading_top = $heading[0].getBoundingClientRect().top;
 			const pane_top = document
