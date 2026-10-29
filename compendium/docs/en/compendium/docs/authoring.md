@@ -73,7 +73,7 @@ that owns the canonical page or a later installed app.
 Pages can also be written in Desk instead of shipped as files. They come after
 all installed apps, so a page at the same logical path replaces the app's page.
 Localized pages follow the same canonical-language rules as files. See
-[Writing Pages in Desk](/desk/docs/compendium/docs/desk-pages).
+[Writing Pages in Desk](/app/docs/compendium/docs/desk-pages).
 
 ## Links between pages
 
@@ -93,7 +93,7 @@ the fragment from the heading text, so it is different in each language. If the
 reader sees the page in a different language, the page opens at the top.
 
 You can also link to a route without a locale, for example
-`/desk/docs/guides/setup`. Compendium then opens the page in the language of the
+`/app/docs/guides/setup`. Compendium then opens the page in the language of the
 reader. Use this form in pages that you write in Desk. Do not put a locale in the
 link: a link with a locale always opens that language.
 

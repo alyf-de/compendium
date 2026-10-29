@@ -165,20 +165,20 @@ class TestDocs(FrappeTestCase):
 			setup = get_page("guides/setup", locale="en")["content"]
 			german_setup = get_page("guides/setup", locale="de")["content"]
 
-		self.assertIn('href="/desk/docs/guides/setup"', home)
-		self.assertIn('href="/desk/docs/guides/setup"', guides)
-		self.assertIn('href="/desk/docs/guides/setup#install"', guides)
-		self.assertIn('href="/desk/docs"', guides)
-		self.assertIn('href="/desk/docs/guides"', setup)
-		self.assertIn('href="/desk/docs/guides/other"', setup)
-		self.assertIn('href="/desk/docs#top"', setup)
-		self.assertIn('href="/desk/docs/guides/other"', german_setup)
+		self.assertIn('href="/app/docs/guides/setup"', home)
+		self.assertIn('href="/app/docs/guides/setup"', guides)
+		self.assertIn('href="/app/docs/guides/setup#install"', guides)
+		self.assertIn('href="/app/docs"', guides)
+		self.assertIn('href="/app/docs/guides"', setup)
+		self.assertIn('href="/app/docs/guides/other"', setup)
+		self.assertIn('href="/app/docs#top"', setup)
+		self.assertIn('href="/app/docs/guides/other"', german_setup)
 
 	def test_page_link_with_html_entity_in_file_name(self):
 		with self.docs_environment({"en/guides/page.md": "# Page\n\n[Tax](sales&tax.md)"}):
 			html = get_page("guides/page", locale="en")["content"]
 
-		self.assertIn('href="/desk/docs/guides/sales%26tax"', html)
+		self.assertIn('href="/app/docs/guides/sales%26tax"', html)
 
 	def test_desk_override_of_folder_index_keeps_relative_links(self):
 		override = frappe._dict(
@@ -200,12 +200,12 @@ class TestDocs(FrappeTestCase):
 		):
 			html = get_page("guides", locale="en")["content"]
 
-		self.assertIn('href="/desk/docs/guides/setup"', html)
+		self.assertIn('href="/app/docs/guides/setup"', html)
 
 	def test_other_links_are_not_rewritten(self):
 		links = (
 			"https://example.com/page.md",
-			"/desk/docs/en/guides/setup",
+			"/app/docs/en/guides/setup",
 			"mailto:docs@example.com",
 			"#section",
 			"manual.pdf",

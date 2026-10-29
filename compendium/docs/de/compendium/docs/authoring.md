@@ -76,7 +76,7 @@ Seiten lassen sich auch in Desk schreiben, statt sie als Dateien auszuliefern.
 Sie kommen nach allen installierten Apps, eine Seite mit gleichem logischem Pfad
 ersetzt also die Seite der App. Übersetzte Seiten folgen denselben Regeln zur
 kanonischen Sprache wie Dateien. Siehe
-[Seiten in Desk schreiben](/desk/docs/compendium/docs/desk-pages).
+[Seiten in Desk schreiben](/app/docs/compendium/docs/desk-pages).
 
 ## Links zwischen Seiten
 
@@ -97,7 +97,7 @@ es ist also in jeder Sprache anders. Sieht der Leser die Seite in einer anderen
 Sprache, öffnet sie sich am Anfang.
 
 Sie können auch auf eine Route ohne Locale verlinken, zum Beispiel
-`/desk/docs/guides/setup`. Compendium öffnet die Seite dann in der Sprache des
+`/app/docs/guides/setup`. Compendium öffnet die Seite dann in der Sprache des
 Lesers. Verwenden Sie diese Form in Seiten, die Sie in Desk schreiben. Geben Sie
 keine Locale im Link an: Ein Link mit Locale öffnet immer diese Sprache.
 
