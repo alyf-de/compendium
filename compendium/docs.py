@@ -25,7 +25,7 @@ DEFAULT_LANG = "en"
 DEFAULT_ROLE = "Desk User"
 ALLOWED_FRONTMATTER_KEYS = ("title", "order", "roles")
 IMAGE_SRC_PATTERN = re.compile(r'(<img[^>]+src=["\'])([^"\']+)(["\'])', re.IGNORECASE)
-PAGE_LINK_PATTERN = re.compile(r'(<a\b[^>]+href=["\'])([^"\'#:]+\.md)(#[^"\']*)?(["\'])', re.IGNORECASE)
+PAGE_LINK_PATTERN = re.compile(r'(<a\b[^>]+href=["\'])([^"\'#?:]+\.md)(#[^"\']*)?(["\'])', re.IGNORECASE)
 PRIVATE_FILE_PATTERN = re.compile(
 	r'(<(?:img|a)\b[^>]+(?:src|href)=["\'])(/private/files/[^"\']+)(["\'])', re.IGNORECASE
 )

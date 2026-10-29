@@ -204,6 +204,7 @@ class TestDocs(IntegrationTestCase):
 			"#section",
 			"manual.pdf",
 			"../../outside.md",
+			"setup.md?next=other.md",
 		)
 		body = "\n\n".join(f"[Link]({link})" for link in links)
 		with self.docs_environment({"en/guides/page.md": f"# Page\n\n{body}"}):
