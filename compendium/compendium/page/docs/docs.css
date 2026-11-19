@@ -2,9 +2,10 @@
    Avoid !important on display so page sidebar toggle() can hide it. */
 
 @media (min-width: 992px) {
+	/* v16 has no top navbar: only the page head (and its 1px border) is above. */
 	[data-page-route="docs"] .layout-main {
-		height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
-		max-height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+		height: calc(100vh - var(--page-head-height) - 1px);
+		max-height: calc(100vh - var(--page-head-height) - 1px);
 		min-height: 0;
 		align-items: stretch;
 		overflow: hidden;
@@ -21,9 +22,14 @@
 		padding-right: var(--padding-md);
 	}
 
+	/* Desk gives this wrapper "flex: 1 0 80%", which cannot shrink next to the
+	   sidebar and pushes the page past the right edge. Take the remaining space. */
 	[data-page-route="docs"] .layout-main-section-wrapper {
 		display: flex;
+		flex: 1 1 0;
 		flex-direction: column;
+		width: auto;
+		min-width: 0;
 		align-self: stretch;
 		height: 100%;
 		max-height: 100%;
@@ -32,12 +38,12 @@
 		overflow-y: auto;
 	}
 
+	/* Fill the scroll area, but grow with the content (no fixed height), so
+	   the sticky TOC has the full page height to stick in. */
 	[data-page-route="docs"] .layout-main-section {
 		display: flex;
 		flex-direction: column;
 		flex: 1 0 auto;
-		min-height: 0;
-		height: 100%;
 	}
 
 	.docs-sidebar {
@@ -65,16 +71,8 @@
 		background: var(--bg-color);
 	}
 
-	.docs-browser {
-		flex: 1;
-		min-height: 0;
-		height: 100%;
-	}
-
 	.docs-state {
 		flex: 1;
-		min-height: 0;
-		height: 100%;
 	}
 }
 
@@ -293,6 +291,11 @@
 	font-size: 0.75rem;
 }
 
+/* Espresso icons are filled shapes without a fill color, so they render black. */
+.docs-footer-button .es-icon {
+	fill: currentColor;
+}
+
 .docs-footer-button:hover,
 .docs-footer-button:focus-visible {
 	background: var(--fg-hover-color, var(--gray-100));
@@ -312,6 +315,20 @@
 	max-width: 10rem;
 	margin-right: 0.25rem;
 	opacity: 1;
+}
+
+.docs-reading-pane img {
+	max-width: 100%;
+	height: auto;
+}
+
+.docs-table-scroll {
+	overflow-x: auto;
+	margin-bottom: var(--margin-md);
+}
+
+.docs-table-scroll > table {
+	margin-bottom: 0;
 }
 
 .docs-reading-pane a {
@@ -502,6 +519,11 @@
 	font-size: 0.9em;
 }
 
+/* Desk colors code with a dark purple that dark mode does not change. */
+[data-theme="dark"] .docs-reading-pane :not(pre) > code {
+	color: var(--purple-200);
+}
+
 .docs-fallback-notice {
 	margin-bottom: var(--margin-lg);
 	padding: var(--padding-xs) var(--padding-sm);
@@ -536,8 +558,13 @@
 		margin-inline: 0;
 	}
 
+	/* Stay in view while the content column scrolls. A long TOC scrolls by itself. */
 	.docs-toc-pane:not(.hide) {
+		position: sticky;
+		top: 0;
 		display: block;
+		max-height: calc(100vh - var(--page-head-height) - 1px);
+		overflow-y: auto;
 		padding: var(--padding-md);
 		border-left: 1px solid var(--border-color);
 	}

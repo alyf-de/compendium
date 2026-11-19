@@ -216,9 +216,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 			if (view.page || target_path == null || target_path === path) {
 				this.current_locale = locale;
 				this._ignore_next_show = true;
-				// frappe.breadcrumbs keys every entry by the current route string, so
-				// rendering before the route lands files them under the old locale and
-				// the Desk then clears them. Render once the new route is current.
+				// Render once the new route is current, so the title and breadcrumbs
+				// belong to the new locale's route.
 				frappe.set_route(route).then(() => this.apply_view(view));
 				return;
 			}
@@ -469,6 +468,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$toc_pane.toggleClass("hide", !toc_html);
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.render_heading_anchors();
+		// A table wider than the column scrolls sideways instead of overflowing.
+		this.$reading.find("table").wrap('<div class="docs-table-scroll"></div>');
 		this.render_fallback_notice(doc);
 		this.render_page_footer(doc);
 		// Diagrams load their renderer asynchronously and shift later headings;
@@ -785,26 +786,26 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 	}
 
 	update_breadcrumbs(path = null, title = null) {
-		const items = [{ label: __("Documentation"), route: this.get_docs_route() }];
+		const items = [{ label: __("Documentation"), href: this.get_docs_route() }];
 
-		if (path === null || path === undefined) {
-			frappe.breadcrumbs.add({ type: "Custom", items });
-			return;
-		}
-
-		const trail = this.find_path_trail(this.tree_data, path);
-		if (trail?.length) {
-			for (const node of trail) {
-				items.push({
-					label: node.title,
-					route: this.get_docs_route(node.path),
-				});
+		if (path !== null && path !== undefined) {
+			const trail = this.find_path_trail(this.tree_data, path);
+			if (trail?.length) {
+				for (const node of trail) {
+					items.push({
+						label: node.title,
+						href: this.get_docs_route(node.path),
+					});
+				}
+			} else {
+				this.append_path_segment_breadcrumbs(items, path, title);
 			}
-		} else {
-			this.append_path_segment_breadcrumbs(items, path, title);
 		}
 
-		frappe.breadcrumbs.add({ type: "Custom", items });
+		// The last crumb is the page title in v16, so it does not link to itself.
+		const current_page = items.at(-1);
+		delete current_page.href;
+		this.page.set_breadcrumbs(items);
 	}
 
 	append_path_segment_breadcrumbs(items, path, title) {
@@ -822,8 +823,7 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 						? title
 						: node?.title ||
 						  frappe.utils.to_title_case(segments[index].replace(/-/g, " ")),
-				route: !is_last && node ? this.get_docs_route(accumulated) : "",
-				disabled: is_last || !node,
+				href: node ? this.get_docs_route(accumulated) : undefined,
 			});
 		}
 	}
