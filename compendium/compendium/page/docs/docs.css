@@ -299,6 +299,11 @@
 	font-size: 0.75rem;
 }
 
+/* Espresso icons are filled shapes without a fill color, so they render black. */
+.docs-footer-button .es-icon {
+	fill: currentColor;
+}
+
 .docs-footer-button:hover,
 .docs-footer-button:focus-visible {
 	background: var(--fg-hover-color, var(--gray-100));
@@ -511,6 +516,11 @@
 	border-radius: var(--border-radius-sm);
 	background: var(--subtle-fg);
 	font-size: 0.9em;
+}
+
+/* Desk colors code with a dark purple that dark mode does not change. */
+[data-theme="dark"] .docs-reading-pane :not(pre) > code {
+	color: var(--purple-200);
 }
 
 .docs-fallback-notice {
