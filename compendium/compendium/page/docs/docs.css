@@ -508,6 +508,11 @@
 	font-size: 0.9em;
 }
 
+/* Desk colors code with a dark purple that dark mode does not change. */
+[data-theme="dark"] .docs-reading-pane :not(pre) > code {
+	color: var(--purple-200);
+}
+
 .docs-fallback-notice {
 	margin-bottom: var(--margin-lg);
 	padding: var(--padding-xs) var(--padding-sm);
