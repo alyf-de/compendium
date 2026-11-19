@@ -32,12 +32,12 @@
 		overflow-y: auto;
 	}
 
+	/* Fill the scroll area, but grow with the content (no fixed height), so
+	   the sticky TOC has the full page height to stick in. */
 	[data-page-route="docs"] .layout-main-section {
 		display: flex;
 		flex-direction: column;
 		flex: 1 0 auto;
-		min-height: 0;
-		height: 100%;
 	}
 
 	.docs-sidebar {
@@ -65,16 +65,8 @@
 		background: var(--bg-color);
 	}
 
-	.docs-browser {
-		flex: 1;
-		min-height: 0;
-		height: 100%;
-	}
-
 	.docs-state {
 		flex: 1;
-		min-height: 0;
-		height: 100%;
 	}
 }
 
@@ -545,8 +537,13 @@
 		margin-inline: 0;
 	}
 
+	/* Stay in view while the content column scrolls. A long TOC scrolls by itself. */
 	.docs-toc-pane:not(.hide) {
+		position: sticky;
+		top: 0;
 		display: block;
+		max-height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+		overflow-y: auto;
 		padding: var(--padding-md);
 		border-left: 1px solid var(--border-color);
 	}
