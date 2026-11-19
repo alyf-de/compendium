@@ -468,6 +468,8 @@ frappe.ui.DocsBrowser = class DocsBrowser {
 		this.$toc_pane.toggleClass("hide", !toc_html);
 		this.$content.toggleClass("has-toc", Boolean(toc_html));
 		this.render_heading_anchors();
+		// A table wider than the column scrolls sideways instead of overflowing.
+		this.$reading.find("table").wrap('<div class="docs-table-scroll"></div>');
 		this.render_fallback_notice(doc);
 		this.render_page_footer(doc);
 		// Diagrams load their renderer asynchronously and shift later headings;

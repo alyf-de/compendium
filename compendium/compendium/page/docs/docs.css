@@ -322,6 +322,15 @@
 	height: auto;
 }
 
+.docs-table-scroll {
+	overflow-x: auto;
+	margin-bottom: var(--margin-md);
+}
+
+.docs-table-scroll > table {
+	margin-bottom: 0;
+}
+
 .docs-reading-pane a {
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
