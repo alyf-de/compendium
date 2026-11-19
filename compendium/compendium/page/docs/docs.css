@@ -306,6 +306,11 @@
 	opacity: 1;
 }
 
+.docs-reading-pane img {
+	max-width: 100%;
+	height: auto;
+}
+
 .docs-table-scroll {
 	overflow-x: auto;
 	margin-bottom: var(--margin-md);
